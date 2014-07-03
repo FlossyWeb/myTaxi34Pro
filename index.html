@@ -1,0 +1,1183 @@
+<!doctype html>
+<html>
+    <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="CONTENT-LANGUAGE" content="French">
+    <title>My Taxi 34 Pro by Taxi Global Services</title>
+    <link rel="apple-touch-icon" href="visuels/idev.favicon.png"/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1"/>
+    <!-- <meta name="viewport" content="width=device-width, height=device-height, user-scalable=yes, initial-scale=1"/> -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="apple-touch-startup-image" href="visuels/startup_image.png" />
+    <!-- iPhone -->
+    <link rel="apple-touch-startup-image" media="(device-width: 320px)" href="visuels/startup_image.png">
+    <!-- iPhone (Retina) -->
+    <link rel="apple-touch-startup-image"
+          media="(device-width: 320px)
+             and (-webkit-device-pixel-ratio: 2)"
+          href="visuels/startup_image_xl.png">
+    <!-- iPhone 5 -->
+    <link rel="apple-touch-startup-image"
+            media="(device-width: 320px) and (device-height: 568px)
+            and (-webkit-device-pixel-ratio: 2)"
+            href="visuels/startup_image_i5.png">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.3/jquery.mobile-1.4.3.min.css" />
+	<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+	<script type="text/javascript">
+        $( document ).bind( "mobileinit", function() {
+            // Make your jQuery Mobile framework configuration changes here!
+            $.support.cors = true;
+            $.mobile.allowCrossDomainPages = true;
+            $.mobile.selectmenu.prototype.options.nativeMenu = false;
+			//$.mobile.ajaxEnabled = false;
+			$.mobile.loader.prototype.options.text = "Veuillez patienter pendant la recherche de taxi disponible. Merci de votre confiance !";
+			$.mobile.loader.prototype.options.textVisible = "true";
+			$.mobile.loader.prototype.options.theme = "a";
+			$.mobile.loader.prototype.options.html = '<span class="ui-bar ui-overlay-c ui-corner-all"><center><img src="visuels/preload_world.gif"/><br><span style="color:#F00;">Veuillez patienter pendant la recherche de taxis disponibles</span><br>Merci de votre confiance !</center></span>';
+        });
+    </script>    
+    <script src="http://code.jquery.com/mobile/1.4.3/jquery.mobile-1.4.3.min.js"></script>
+    <script src="phonegap.js"></script>
+    <script src="barcodescanner.js"></script>
+    <script src="contactNumberPicker.js"></script>
+    <script src="sms.js"></script>
+    <script type="text/javascript" src="js/jquery.html5storage.min.js"></script>
+    <script src="https://maps.google.com/maps/api/js?key=AIzaSyCvL4a4-LKLUXJrTwpJ4_UnkmtZSGgrVWg&sensor=false&libraries=places" type="text/javascript"></script>
+	<script type="text/javascript" src="js/jquery.geocomplete.min.js"></script>
+	<script type="text/javascript" src="ui/min/jquery.ui.map.full.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="css/dcvpad.css" />
+    <script type="text/javascript">	
+    //<![CDATA[
+    var map;
+    var markers = [];
+    var infoWindow;
+    var locationSelect;
+	var idcourse;
+	var time;
+	var endcourse; // Clears the timeout
+	var sec;
+	var regName1 = $.localStorage.getItem('regName1');
+	var regCell1 = $.localStorage.getItem('regCell1');
+	var regName2 = $.localStorage.getItem('regName2');
+	var regCell2 = $.localStorage.getItem('regCell2');
+	var regName3 = $.localStorage.getItem('regName3');
+	var regCell3 = $.localStorage.getItem('regCell3');
+	var registeredUser = $.localStorage.getItem('registeredUser');
+	var nom = $.localStorage.getItem('nom');
+	var tel = $.localStorage.getItem('tel');
+	var email = $.localStorage.getItem('email');
+	var operator = $.localStorage.getItem('operator');
+	var dontReg = false;
+	var mobileMap = { 'center': '43.609, 3.88', 'zoom': 12 };
+
+	// Scanner
+	var scanner;
+	// Detect wether it is an App or WebApp
+	var app;
+
+	////////////////////////////////////////////////////////////
+	
+	// Checks App or Browser
+	app = document.URL.indexOf( 'http://' ) === -1 && document.URL.indexOf( 'https://' ) === -1 && document.URL.indexOf("localhost") != 7;
+	if ( app ) {
+		// PhoneGap application
+		// Attendre que PhoneGap soit prêt	    //
+		document.addEventListener("deviceready", onDeviceReady, false);
+	
+		// PhoneGap est prêt
+		function onDeviceReady() {
+			document.addEventListener("backbutton", onBackKeyDown, false);
+			document.addEventListener("menubutton", onMenuKeyDown, false);
+			StatusBar.overlaysWebView(false);
+			if($.localStorage.getItem('registeredUser') != 1)
+			{
+				$.mobile.pageContainer.pagecontainer("change", "#connect", { transition: "slide"} );
+			}
+			setTimeout(function() { 
+				locateMe();
+			}, 1000);
+			scanner = cordova.require("cordova/plugin/BarcodeScanner");
+		}
+		// GESTION DES BOUTONS MATERIEL
+		// Bouton retour
+		function onBackKeyDown() {
+			//history.back();
+			//changePage('#infos');
+			alert('Veuillez ne pas quitter myTaxi pendant la recheche de taxi disponibles');
+		}
+		// Bouton menu
+		function onMenuKeyDown() {
+			//changePage('#infos');
+		}
+	}
+	else {
+		app = false;
+	}
+	var scanSuccess = function (result) {
+		var textFormats = "QR_CODE DATA_MATRIX";
+		var productFormats = "UPC_E UPC_A EAN_8 EAN_13";
+		if (result.cancelled) { return; }
+		if (textFormats.match(result.format)) {                
+			var scanVal = result.text;
+			if (scanVal.indexOf("http") === 0) {
+				setTimeout(function() { 
+					//window.plugins.childBrowser.showWebPage(result.text, { showLocationBar: true }); 
+					window.open(result.text,'_blank','location=yes,enableViewportScale=yes,closebuttoncaption=Fermer');
+				}, 500);
+			} else {
+				navigator.notification.alert(
+						result.text,
+						function (){},
+						'Scan Value:',
+						'Done'
+					);
+			}
+		} else if (productFormats.match(result.format)) {
+			var searchUrl = "https://www.google.fr/#q=" + result.text;
+			setTimeout(function() { 
+				//window.plugins.childBrowser.showWebPage(searchUrl, { showLocationBar: true });
+				window.open(searchUrl,'_blank','location=yes,enableViewportScale=yes,closebuttoncaption=Fermer');
+			}, 500);
+		} else { alert("Format du scan: " + result.format + 
+				  " NON SUPPORTE. Valeur du scan: " + result.text);
+		}
+	}
+	function goScan ()
+	{
+		if (app) {
+			// If app is runing we scan from the device camera
+			scanner.scan(
+				scanSuccess, 
+				function (error) {
+					alert("Scan Erreur: " + error);
+				}
+			);
+		}
+		else {
+			$('#smsReturn').empty().append('Cette fonction n&rsquo;est disponible que sur l&rsquo;application mobile');
+			$( "#popSms" ).popup( "open", { positionTo: "window" } );
+			//alert('WTF');
+		}
+	}
+
+	function Share()
+	{
+		var successCallbackPick = function(result){
+			setTimeout(function(){
+				//alert(result.name + " " + result.phoneNumber);
+				var number = result.phoneNumber;
+				var message = "Téléchargez l'app myTaxi 34 en suivant ce lien : http://www.taximedia.fr/stores.php?app=mytaxi&dep=34";
+				var intent = ""; //leave empty for sending sms using default intent
+				var success = function () {
+					//alert('Message sent successfully');
+					$('#smsReturn').empty().append('Message envoy&eacute; avec succ&egrave;s, Merci');
+					$( "#popSms" ).popup( "open", { positionTo: "window" } );
+				};
+				var error = function (e) {
+					//alert('Message Failed:' + e); 
+					$('#smsReturn').empty().append('Probl&egrave;me lors de l&rsquo;envoi du message: ' + e);
+					$( "#popSms" ).popup( "open", { positionTo: "window" } );
+				};
+				sms.send(number, message, intent, success, error);
+			},500);
+		};
+		var failedCallbackPick = function(result){
+			setTimeout(function(){
+				//alert(result);
+			},500);
+		}
+		if (app) {
+			// If app is runing we get contact from the device
+			window.plugins.contactNumberPicker.pick(successCallbackPick,failedCallbackPick);
+		}
+		else {
+			$('#smsReturn').empty().append('Cette fonction n&rsquo;est disponible que sur l&rsquo;application mobile');
+			$( "#popSms" ).popup( "open", { positionTo: "window" } );
+			//alert('WTF');
+		}
+	}
+	
+	function getContact()
+	{
+		var successCallbackPick = function(result){
+			setTimeout(function(){
+				//alert(result.name + " " + result.phoneNumber);
+				var nameContact = result.name;
+				var number = result.phoneNumber;
+				var currentName = $('#Accurate').val();
+				$('#Accurate').val(nameContact);
+				$('#cellular').val(number);
+				$("#next-box").hide("fast");
+				$("#search-box").show("medium");
+			},500);
+		};
+		var failedCallbackPick = function(result){
+			setTimeout(function(){
+				//alert(result);
+			},500);
+		}
+		if (app) {
+			// If app is runing we get contact from the device
+			window.plugins.contactNumberPicker.pick(successCallbackPick,failedCallbackPick);
+		}
+		else {
+			//alert(nom+' - '+mngid+' - '+tel);
+			$.post("https://ssl14.ovh.net/~taxibleu/server/get_contacts.php", {dep: '34', tel: tel}, function(data) {
+				$('#contReturn').empty().append(data);
+				$( "#popCont" ).popup( "open", { positionTo: "window" } );
+			});
+		}
+	}
+	
+	function dc() {
+		$.localStorage.setItem('registeredUser', 0);
+		$.mobile.pageContainer.pagecontainer("change", "#connect", { transition: "slide"} );
+	}
+	function login() {
+		var id = $('#login').val();
+		var pwd = $('#pwd').val();
+		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/login_app.php", { id: id, pwd: pwd, kinda: 'pro'}, function(data) {
+			$.localStorage.setItem('nom', data.nom);
+			$.localStorage.setItem('email', data.email);
+			$.localStorage.setItem('tel', data.tel);
+			$.localStorage.setItem('operator', data.operator);
+			if (!data.pass)
+			{
+				display = '<p style="color:red;"><b>Les identifiant et mot de passe fournis ne sont pas corrects.</b></p>';
+				$("#loginReturns").empty().append(display);
+			}
+			else
+			{ // IDENTIFIED SO GETS IN...
+				$('#Accurate').val(data.nom);
+				$('#cellular').val(data.tel);
+				$.localStorage.setItem('registeredUser', 1);
+				$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide"} );
+			}
+		}, "json");
+	}
+	function subscribe() {
+		var nom = $('#subName').val();
+		var tel = $('#subTel').val();
+		var email = $('#subMail').val();
+		$("#subReturns").empty();
+		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/register_app.php", { nom: nom, tel: tel, email: email, kinda: 'pro'}, function(data) {
+			$.localStorage.setItem('nom', data.nom);
+			$.localStorage.setItem('email', data.email);
+			$.localStorage.setItem('tel', data.tel);
+			$.localStorage.setItem('operator', data.operator);
+			if (data.subscribed === true)
+			{
+				//alert(data.subscribed+' '+data.telexist+' '+data.telvalid+' '+data.emailvalid);
+				$.localStorage.setItem('registeredUser', 1);
+				$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide"} );
+				//display = '<p><b>' + data.civil + ' ' + data.nom + ' ' + data.prenom + ' Voici les informations d&rsquo;identification qui vous permettront d&rsquo;acc&egrave;der &agrave; votre compte :<br><span style="color:#09F;">Identifiant = ' + data.tel + '<br>Mot de passe = ' + data.pwd + '</span><br>Vous les recevrez dans quelques instants &agrave; cet email : <span style="color:#09F;">' + data.email + '</span>, merci.<br></b></p>';
+			}
+			else {
+				display = '<p><b>Vous n&rsquo;avez pas correctement rempli le formulaire d&rsquo;inscription. Nous vous prions de modifier les informations suivantes.</b></p><br>';
+				
+				if (data.telexist === true)
+				{
+					display += '<p style="color:red;"><b>Le num&eacute;ro de t&eacute;l&eacute;phone fourni est d&eacute;j&agrave; associ&eacute; &agrave; un compte.</b></p>';
+				}
+				if (data.telvalid === false)
+				{
+					display += '<p style="color:red;"><b>Le num&eacute;ro de t&eacute;l&eacute;phone fourni n&rsquo;est pas valide: 0000000000 (sans espaces).</b></p>';
+				}
+				if (data.emailvalid === false)
+				{
+					display += '<p style="color:red;"><b>L&rsquo;email fourni n&rsquo;est pas valide.</b></p>';
+				}
+			}
+			$("#subReturns").empty().append(display);
+		}, "json");
+	}
+	function accountMod() {
+		var nom = $('#accName').val();
+		var newtel = $('#accTel').val();
+		var email = $('#accMail').val();
+		var pwd = $('#accPwd').val();
+		$("#accReturns").empty();
+		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/modmy_app.php", { nom: nom, tel: tel, newtel: newtel, email: email, pwd: pwd, kinda: 'pro'}, function(data) {
+			$.localStorage.setItem('nom', data.nom);
+			$.localStorage.setItem('email', data.email);
+			$.localStorage.setItem('tel', data.tel);
+			
+			if (data.modmy == 1)
+			{
+				display = '<p style="color:green;"><b>Vous avez bien modifi&eacute; votre compte.</b></p><br>';
+			}
+			else {
+				display = '<p style="color:red;"><b>Vous n&rsquo;avez pas modifi&eacute; votre compte.</b></p><br>';
+				
+				if (data.telvalid === false)
+				{
+					display += '<p style="color:red;"><b>Le num&eacute;ro de t&eacute;l&eacute;phone fourni n&rsquo;est pas valide: 0000000000 (sans espaces).</b></p>';
+				}
+				if (data.emailvalid === false)
+				{
+					display += '<p style="color:red;"><b>L&rsquo;email fourni n&rsquo;est pas valide.</b></p>';
+				}
+				if ((data.telvalid == 1) && (data.emailvalid == 1))
+				{
+					display += '<p style="color:red;"><b>Le t&eacute;l&eacute;phone renseign&eacute; n&rsquo;est associ&eacute; &agrave; aucun compte.</b></p>';
+				}
+			}
+			$("#accReturns").empty().append(display);
+		}, "json");
+	}
+	function forgottenPwd() {
+		var login = $('#forgotTel').val();
+		var mail = $('#forgotMail').val();
+		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/forget_app.php", { login: login, mail: mail, kinda: 'pro'}, function(data) {
+			var display = '';
+			if (data.sent)
+			{
+				display = '<p><b>Voici les informations d&rsquo;identification qui vous permettront d&rsquo;acc&egrave;der &agrave; votre compte :<br><span style="color:#09F;">Identifiant = ' + data.tel + '<br>Mot de passe = ' + data.pwd + '</span><br>Vous les recevrez dans quelques instants &agrave; cet email : <span style="color:#09F;">' + data.email + '</span>, merci.<br></b></p>';
+			}
+			else {
+				display = '<p style="color:red;"><b>Nous ne pouvons divulguer vos informations personnelles car l&rsquo;identifiant ou l&rsquo;adresse mail fourni ne figure pas dans notre base de donn&eacute;e.</b></p>' + data.tel + ' - ' + data.email;
+			}
+			$("#fogotReturns").empty().append(display);
+		}, "json");
+	}
+	$(document).bind( 'pagecreate', function() {
+		$( "body>[data-role='panel']" ).panel().enhanceWithin();
+	});
+	$( '#connect' ).live( 'pagecreate',function(event){
+		$('#displayForgot').click(function (){
+			$('#forgotForm').slideToggle();
+		});
+	});
+	$( '#account' ).live( 'pagecreate',function(event){
+		var nom = $.localStorage.getItem('nom');
+		var tel = $.localStorage.getItem('tel');
+		var email = $.localStorage.getItem('email');
+		$('#accName').val(nom);
+		$('#accMail').val(email);
+		$('#accTel').val(tel);
+	});
+	function more(n) {
+		$('#histBlock'+n).slideToggle('slow');
+	}
+	function moreb(n) {
+		$('#bookBlock'+n).slideToggle('slow');
+	}
+	function refreshHist() {
+		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
+			$.mobile.loading( "show" );
+			$("#hist_cont").empty().append(data);
+		}).done(function() { $.mobile.loading( "hide" ); });
+		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
+			$.mobile.loading( "show" );
+			$("#book_cont").empty().append(data);
+		}).done(function() { $.mobile.loading( "hide" ); });
+	}
+	$( '#history' ).live( 'pagecreate',function(event){
+		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
+			$.mobile.loading( "show" );
+			$("#hist_cont").empty().append(data);
+		}).done(function() { $.mobile.loading( "hide" ); });
+		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
+			$.mobile.loading( "show" );
+			$("#book_cont").empty().append(data);
+		}).done(function() { $.mobile.loading( "hide" ); });
+	});
+	$( '#book_page' ).live( 'pagecreate',function(event){
+		var myDate = new Date();
+		idcourse = myDate.getTime();
+		//$('#dblinks').append($('<input id="idcourse" type="hidden" value="' + idcourse + '"/>'));
+		//var radius = document.getElementById('radiusSelect').value;
+		var rdvpoint = document.getElementById("addressInput").value.replace(/'/g, "&rsquo;");
+		var room = document.getElementById("Accurate").value.replace(/'/g, "&rsquo;");
+		var operator = $.localStorage.getItem('operator');
+		var hostname = document.getElementById("hostname").value.replace(/'/g, "&rsquo;");
+		var howMany = document.getElementById("howMany").value;
+		var typecar = document.getElementById("CarType").value;
+		var cb = document.getElementById("Pay").value;
+		var group = document.getElementById("group").value;
+		switch (cb) {
+			case '0':
+				var payment = "Non";
+				cb = 0;
+			  break;
+			case '1':
+				var payment = "Oui";
+				cb = 1;
+			  break;
+			case '2':
+				var payment = "Oui (AMEX)";
+				cb = 1;
+			  break;
+			default:
+				var payment = "Non";
+				cb = 0;
+		}
+		var coms = document.getElementById("coms").value.replace(/'/g, "&rsquo;");
+		var comments1 = '<ul><li>Nom du client : ' + room + '</li><li>Paiement CB : ' + payment + '</li><li>Nombre de passagers : ' + howMany + '</li><li>Type de vehicule : ' + typecar + '</li>';
+		if (coms != '') {
+			var comments2 = '<li>' + coms + '</li></ul>';
+		}
+		else {
+			var comments2 = '</ul>';
+		}
+		var comments = comments1+comments2;
+		var dest = document.getElementById("DestAddress").value.replace(/'/g, "&rsquo;");
+		var cell = document.getElementById("cellular").value;
+		var when = document.getElementById("when").value;
+		var date = document.getElementById("date").value;
+		//var medic = document.getElementById("medic").value;
+		if (!dontReg) {
+			for(n=1;n<4;n++) {
+				if(($.localStorage.getItem('regName'+n) == null) && ($.localStorage.getItem('regCell'+n) == null)) {
+					var regName = $.localStorage.setItem('regName'+n, $('#Accurate').val());
+					var regCell = $.localStorage.setItem('regCell'+n, cell);
+					var regLast = $.localStorage.setItem('regLast', n);
+					var writen = true;
+					break;
+				}
+			}
+			if(!writen) {
+				var regLast = $.localStorage.getItem('regLast');
+				switch (regLast) {
+					case '1':
+						var entry = 2;
+					  break;
+					case '2':
+						var entry = 3;
+					  break;
+					case '3':
+						var entry = 1;
+					  break;
+					default:
+				}
+				var regName = $.localStorage.setItem('regName'+entry, $('#Accurate').val());
+				var regCell = $.localStorage.setItem('regCell'+entry, cell);
+			}
+		}
+		var rdvlat = '';
+		var rdvlng = '';
+		url = '';
+		num_req = idcourse;
+		url = 'taxi=0000&tel=0000000000&idcourse=' + idcourse + '&num_req=' + num_req + '&rdvpoint=' + rdvpoint + '&lat=' + rdvlat + '&lng=' + rdvlng + '&comments=' + comments + '&cell=' + cell + '&when=' + when + '&date=' + date + '&operator=' + operator + '&howmany=' + howMany + '&dep=34&group=1&ack=0&db=1&prix=20000';
+		url = url.replace(/'/g, "&rsquo;");
+		url = url.replace(/(?:\r\n|\r|\n)/g, '<br/>'); // Replaces line breaks by <br/>
+		$.post("https://ssl14.ovh.net/~taxibleu/server/bookings_app_share.php", url, function(data) {});
+	});
+	/*
+	$('#infos').live("swiperight", function() {
+		$("#panel_poper").trigger('click');
+	});
+	*/
+	$( '#infos' ).live( 'pagecreate',function(event){
+		
+		$("#addressInput").geocomplete({
+		  map: "#map",
+		  location: "Montpellier, France"
+		});
+		if(!app) {
+			if($.localStorage.getItem('registeredUser') != 1)
+			{
+				$.mobile.pageContainer.pagecontainer("change", "#connect", { transition: "slide"} );
+			}
+			locateMe();
+		}
+		once = true;
+        var ok = setInterval( function () {
+            var name_filled = document.getElementById('Accurate').value;
+            var cell_filled = document.getElementById('cellular').value;
+			var when = document.getElementById("when").value;
+			var date = document.getElementById("date").value;
+			var howMany = document.getElementById("howMany").value;
+            
+            if ((cell_filled != '') && (name_filled != ''))
+            {
+				if ((when == '') && (date == '')) {
+					// No Cmd
+					$("#next-box").hide("fast");
+					$("#book-box").hide("fast");
+					$("#search-box").show("medium");
+				}
+				else { // Cmd here
+					$("#next-box").hide("fast");
+					$("#search-box").hide("fast");
+					$("#book-box").show("medium");
+				}
+            }
+            else
+            {
+                $("#search-box").hide("fast");
+				$("#book-box").hide("fast");
+                $("#next-box").show("medium");
+            }
+			if(howMany>8) {
+				if(once) {
+					alert('Pour plus de huit personnes veuillez passer une reservation SVP');
+					$('#book').slideToggle('slow');
+					$('#date').focus();
+				}
+				once = false;
+			}
+        }, 1000);
+		var nom = $.localStorage.getItem('nom');
+		var tel = $.localStorage.getItem('tel');
+		$('#Accurate').val(nom);
+		$('#cellular').val(tel);
+		$('.expends').click(function () {
+			$(this).next('div').slideToggle('slow');
+			//$.mobile.silentScroll($(this).next('div').offset().top);
+		});
+		
+		$('#regLinks').append('<fieldset data-role="controlgroup"><legend>Derni&egrave;res informations saisies:</legend>');
+		for(n=1;n<4;n++) {
+			if(($.localStorage.getItem('regName'+n) != null) && ($.localStorage.getItem('regCell'+n) != null)) {
+				rName = $.localStorage.getItem('regName'+n);
+				rCell = $.localStorage.getItem('regCell'+n);
+				$('#regLinks').append('<button id="reg'+n+'" onClick="Fillin(\''+rName+'\',\''+rCell+'\')" class="ui-shadow ui-btn ui-btn-b ui-corner-all ui-icon-star">'+rName+' - '+rCell+'</button>');
+			}
+		}
+		$('#regLinks').append('</fieldset>');
+	});
+	function locateMe() {
+		if (navigator.userAgent.toLowerCase().match(/android/)) {
+			navigator.geolocation.getCurrentPosition(codeLatLng, showError,{enableHighAccuracy:false, maximumAge:0});
+		}
+		else {
+			navigator.geolocation.getCurrentPosition(codeLatLng, showError,{enableHighAccuracy:true, maximumAge:0});
+		}
+	}
+	function codeLatLng(position) {
+		var geocoder = new google.maps.Geocoder();
+		var lat = position.coords.latitude;
+		var lng = position.coords.longitude;
+		var latlng = new google.maps.LatLng(lat, lng);
+		geocoder.geocode({'latLng': latlng}, function(results, status) {
+			if (status == google.maps.GeocoderStatus.OK)
+			{
+				if (results[0]) {
+						$('#addressInput').val(results[0].formatted_address);
+				}
+				else {
+						alert('No results found');
+				}
+			}
+			else {
+				alert('Geocoder failed due to: ' + status);
+			}
+		});
+	}
+	function showError(error)
+	{
+		var x=document.getElementById("resultsGeo");
+		switch(error.code) 
+		{
+			case error.PERMISSION_DENIED:
+			  x.innerHTML="<strong>Vous avez refus&eacute; l&rsquo;acc&egrave;s &agrave; la G&eacute;olocalisation.</strong>"
+			  break;
+			case error.POSITION_UNAVAILABLE:
+			  x.innerHTML="<strong>G&eacute;olocalisation indisponible, veuillez regarder dans l&rsquo;aide ou activer le service dans les reglages de votre appareil.</strong>"
+			  break;
+			case error.TIMEOUT:
+			  x.innerHTML="<strong>La demande de G&eacute;olocalisation a expir&eacute;(user location request timed out).</strong>"
+			  break;
+			case error.UNKNOWN_ERROR:
+			  x.innerHTML="<strong>Erreur inconnue de G&eacute;olocalisation (unknown error occurred).</strong>"
+			  break;
+			default:
+			  x.innerHTML="<strong>Erreur de G&eacute;olocalisation, red&eacute;marrage du smartphone n&eacute;c&eacute;ssaire.</strong>"
+		}
+		// Fall back to no options and try again for Android to work.
+		navigator.geolocation.getCurrentPosition(codeLatLng, function(){
+			$( "#errorPop" ).popup( "open", { positionTo: "window" } );
+		});
+	}			  
+	function Fillin(Name, Cell)
+	{
+		$('#Accurate').val(Name);
+		$('#cellular').val(Cell);
+		$("#next-box").hide("fast");
+		$("#rememberMe").popup("close");
+		$("#search-box").show("medium");
+		dontReg = true;
+	}
+		
+	$( '#map_page' ).live( 'pagebeforeshow',function(event){
+		//$('#map').gmap('clear', 'markers');
+		//$('#dblinks').empty();	 
+	});
+	
+	$('#map_page').live('pagecreate', function() {
+        var getback = setTimeout( function () {
+            $("#cancel").trigger('click');
+        }, 180000);
+		//demo.add('basic_map', function() {
+		//$('#dblinks').empty();
+		$('#map').gmap({'center': mobileMap.center, 'zoom': mobileMap.zoom, 'disableDefaultUI':false, 'mapTypeId': google.maps.MapTypeId.ROADMAP, 'callback': function() {
+		//$('#map').gmap({'callback': function() {
+			var self = this;
+			var geocoder = new google.maps.Geocoder();
+			var  address = $('#addressInput').val();
+			//var address = document.getElementById("addressInput").value;
+			geocoder.geocode({address: address}, function(results, status) {
+				if (status == google.maps.GeocoderStatus.OK) {
+					//$('#dblinks').append($('<p>' + results[0].geometry.location + '__RDV</p>'));
+					var myPlace = results[0].geometry.location;
+					$.mobile.loading( "show" );
+					//self.refresh();
+					wait4Me = setTimeout( function () {
+						searchLocationsNear(myPlace, self);
+						//$.mobile.loading( "hide" );
+					}, 2000);
+					
+					var userIcon = 'visuels/blue_marker.png';
+					self.get('map').panTo(myPlace);
+					//self.get('map').setZoom(12);
+					//self.get('map').setCenter(myPlace);
+					self.addMarker({'position': myPlace, 'bounds': true, 'icon': userIcon }).click(function() {
+						self.openInfoWindow({ 'content': address+' / Lieu de prise en charge' }, this);
+					});
+					//var gcenter = myPlace.lat().toFixed(4) +", "+ myPlace.lng().toFixed(4);
+					//var circleCenter = new google.maps.LatLng(gcenter);
+					self.addShape('Circle', {
+						'strokeWeight': 0, 
+						'fillColor': "#008595", 
+						'fillOpacity': 0.25, 
+						'center': myPlace, 
+						'radius': 2000, 
+						'clickable': false 
+					});
+					
+					//searchLocationsNear(myPlace, self);
+				} else {
+					alert(address + ' NON TROUVEE ');
+					$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide", reverse: true} );
+				}
+			});
+		}}); 
+		
+        // Auto Click and deliver courses to cabs
+        $('#deliver').click(function () {
+                                 
+            check_answer();
+                        
+			var index = 0;
+			$('#dblinks #' + index).trigger('click');// Deliver to the first before timer !!
+			index++; // Now index = 1
+			time = setInterval( function () {
+				var stoper = document.getElementById('stop').value;
+				if (stoper != 1) {$('#dblinks #' + index).trigger('click');}
+				if ((index > 5) || (stoper == 1)) {
+					// THIS ONE IS THE 0000 CAB AND LAST ONE SO...
+					clearInterval(time);
+                    clearTimeout(endcourse); // Clears the current timeout
+                    clearInterval(sec);
+					//alert('Aucun taxi ne prend la course !!');
+					//return false;
+				}
+				index++;
+			}, 10000);
+    
+    
+            //clearTimeout(endcourse); // Clears the possible previous timeouts
+            endcourse = setTimeout( function () {
+                //if (stoper != 1) {
+                    //$('#cancel').trigger('click');// Cancels every non-acked request after 3 minutes !!
+                    cancel(idcourse);// Cancels every non-acked request after 3 minutes !!
+					clearInterval(time);
+                    clearTimeout(endcourse); // Clears the current timeout
+                    clearInterval(sec);
+                    //$.fancybox.close();
+                    var endbox = confirm('Vous devez soit relancer votre course (OK) soit rechercher de nouveau taxis !! (Annuler)');
+                    if (endbox == true) {
+						$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide", reverse: true} );
+                    }
+                    else {
+                        document.location.href='index.html';
+                    }
+                //}
+            }, 180000);
+            
+        });
+	});
+	
+	$('#map_page').live('pagecontainershow', function() {
+		//demo.add('basic_map', function() { $('#map').gmap('refresh'); }).load('basic_map');
+		//$('#map').gmap("option", "center", mobileMap.center);
+		$('#map').gmap('refresh');
+	});
+	////////////////////////////////////////////////////////////
+		
+	$('#fleet_page').live('pagecreate', function() {
+		$('#fleet_map').gmap({'center': mobileMap.center, 'zoom': mobileMap.zoom, 'disableDefaultUI':false, 'mapTypeId': google.maps.MapTypeId.ROADMAP, 'callback': function() {
+			var self = this;
+			$.post('https://ssl14.ovh.net/~taxibleu/server34/station_fleet_xml.php?group=1', function(xml){
+				$(xml).find('marker').each(function(){
+					var name = $(this).attr('name');
+					var address = $(this).attr('address');
+					var lat = $(this).attr('lat');
+					var lng = $(this).attr('lng');
+					var timestamp = $(this).attr('timestamp');
+					i = $(this).attr('count');
+					var latlng = new google.maps.LatLng(lat, lng);			
+					var display_name = 'Taxi ' + name;
+					var cabIcon = 'visuels/cab_marker.png';
+					self.addMarker({ id: i ,'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
+						infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + name + ' - ' + address+ '</b></p>';
+						self.openInfoWindow({ 'content':  infoCont}, this);
+					});
+					//mapEvent.addBounds(latlng);
+				});
+			});
+		}}); 
+	});
+	
+	$('#fleet_page').live('pagecontainershow', function() {
+		$('#fleet_map').gmap('refresh');
+	});
+	////////////////////////////////////////////////////////////
+	
+	function searchLocationsNear(center, mapEvent) {
+		//clearLocations();
+		//alert('In searchLocationsNear');
+		$('#map').gmap('refresh');
+		var myDate = new Date();
+		idcourse = myDate.getTime();
+		//$('#dblinks').append($('<input id="idcourse" type="hidden" value="' + idcourse + '"/>'));
+		//var radius = document.getElementById('radiusSelect').value;
+		var rdvpoint = document.getElementById("addressInput").value;
+		var room = document.getElementById("Accurate").value;
+		var operator = $.localStorage.getItem('operator');
+		var hostname = document.getElementById("hostname").value;
+		var howMany = document.getElementById("howMany").value;
+		var typecar = document.getElementById("CarType").value;
+		var cb = document.getElementById("Pay").value;
+		var group = document.getElementById("group").value;
+		switch (cb) {
+			case '0':
+				var payment = "Non";
+				cb = 0;
+			  break;
+			case '1':
+				var payment = "Oui";
+				cb = 1;
+			  break;
+			case '2':
+				var payment = "Oui (AMEX)";
+				cb = 1;
+			  break;
+			default:
+				var payment = "Non";
+				cb = 0;
+		}
+		var coms = document.getElementById("coms").value;
+		var comments1 = '<ul><li>Nom du client : ' + room + '</li><li>Paiement CB : ' + payment + '</li><li>Nombre de passagers : ' + howMany + '</li><li>Type de vehicule : ' + typecar + '</li>';
+		if (coms != '') {
+			var comments2 = '<li>' + coms + '</li></ul>';
+		}
+		else {
+			var comments2 = '</ul>';
+		}
+		var comments = comments1+comments2;
+		var dest = document.getElementById("DestAddress").value;
+		var cell = document.getElementById("cellular").value;
+		var when = document.getElementById("when").value;
+		var date = document.getElementById("date").value;
+		//var medic = document.getElementById("medic").value;
+		if (!dontReg) {
+			for(n=1;n<4;n++) {
+				if(($.localStorage.getItem('regName'+n) == null) && ($.localStorage.getItem('regCell'+n) == null)) {
+					var regName = $.localStorage.setItem('regName'+n, $('#Accurate').val());
+					var regCell = $.localStorage.setItem('regCell'+n, cell);
+					var regLast = $.localStorage.setItem('regLast', n);
+					var writen = true;
+					break;
+				}
+			}
+			if(!writen) {
+				var regLast = $.localStorage.getItem('regLast');
+				switch (regLast) {
+					case '1':
+						var entry = 2;
+					  break;
+					case '2':
+						var entry = 3;
+					  break;
+					case '3':
+						var entry = 1;
+					  break;
+					default:
+				}
+				var regName = $.localStorage.setItem('regName'+entry, $('#Accurate').val());
+				var regCell = $.localStorage.setItem('regCell'+entry, cell);
+			}
+		}
+		var rdvlat = center.lat();
+		var rdvlng = center.lng();
+		url = '';
+		num_req = idcourse;
+		i = 0; // We need to make any numreq unique on that one !!
+		//$.post("https://ssl14.ovh.net/~taxibleu/server/app_dcvp_xml.php", { lat: rdvlat, lng: rdvlng, type: typecar, howmany: howMany, cb: cb, group: '1', dep: '', pass: 'true'}, function(xml){
+		$.post('https://ssl14.ovh.net/~taxibleu/server/app_dcvp_xml.php', {lat: rdvlat, lng: rdvlng, type: typecar, howmany: howMany, cb: cb, group: group, dep: '34', pass: 'true'}, function(xml){
+			//alert('IN');
+			$(xml).find('marker').each(function(){
+				var name = $(this).attr('name');
+				var address = $(this).attr('address');
+				var lat2 = $(this).attr('lat');
+				var lng2 = $(this).attr('lng');
+				var timestamp = $(this).attr('timestamp');
+				var distance = $(this).attr('distance');
+				i = $(this).attr('count');
+				num_req = num_req+1;
+				var latlng = new google.maps.LatLng(lat2, lng2);			
+				var display_name = 'Taxi ' + name;
+				var cabIcon = 'visuels/cab_marker.png';
+				mapEvent.addMarker({ id: i ,'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
+					infoCont = "<b>Le taxi n&deg; " + name + " est &agrave; " + parseFloat(distance).toFixed(1) + " Km de vous</b><br>" + address;
+					mapEvent.openInfoWindow({ 'content':  infoCont}, this);
+				});
+				//mapEvent.addBounds(latlng);
+				url = 'taxi=' + name + '&tel=' + address + '&idcourse=' + idcourse + '&num_req=' + num_req + '&rdvpoint=' + rdvpoint + '&lat=' + rdvlat + '&lng=' + rdvlng + '&comments=' + comments + '&cell=' + cell + '&when=' + when + '&date=' + date + '&operator=' + operator + '&dep=34&group=1&ack=0&db=1&prix=20000';
+				//url = url.replace(/'/g, "&rsquo;");
+				url = url.replace(/(?:\r\n|\r|\n)/g, '<br/>'); // Replaces line breaks by <br/>
+				//$.post("https://ssl14.ovh.net/~taxibleu/server/diary_app_share.php", url, function(data) {});
+				$('#dblinks').append($('<input class="cabs" id="' + i + '" type="hidden" onclick="sendJob(\''+ url +'\')" />'));
+			});
+			num_req = num_req+1;
+			i = parseInt(i,10)+1;
+			url = 'taxi=0000&tel=0000000000&idcourse=' + idcourse + '&num_req=' + num_req + '&rdvpoint=' + rdvpoint + '&lat=' + rdvlat + '&lng=' + rdvlng + '&comments=' + comments + '&cell=' + cell + '&when=' + when + '&date=' + date + '&operator=' + operator + '&dep=34&group=1&ack=0&db=1&prix=20000';
+			url = url.replace(/'/g, "&rsquo;");
+			url = url.replace(/(?:\r\n|\r|\n)/g, '<br/>'); // Replaces line breaks by <br/>
+			// Sends Auction Request to TaxiMedia Server
+			$('#dblinks').append($('<input class="cabs" id="' + i + '" type="hidden" onclick="sendJob(\''+ url +'\')" />'));
+			//$.post("https://ssl14.ovh.net/~taxibleu/server/diary_app_share.php", url, function(data) {});
+		}, "xml");
+		$.mobile.loading( "hide" );
+		$('#dblinks').append($('<input id="stop" type="hidden" value="0" />'));
+		deliver();
+	}// ENDS FUNCTION
+
+
+    function deliver()
+    {	
+        //$("a.load").trigger('click');
+        var GoOn = setTimeout( function () {
+            $("#deliver").trigger('click');
+        }, 6000);
+    }
+	
+    function sendJob(url)
+    {	
+		$.post("https://ssl14.ovh.net/~taxibleu/server/diary_app_share.php", url, function(data) {});
+    }
+	
+    function check_answer()
+    {
+		$.post("https://ssl14.ovh.net/~taxibleu/server34/status.php?idcourse=" + idcourse + "&check=1" , {}, function(data){ 
+			if (data != 0)
+			{
+				clearInterval(time);
+				clearTimeout(endcourse);
+				cancel(idcourse);
+				document.getElementById('stop').value = 1;
+				//var box = alert(data);
+				//stopCall();
+				//var box = alert(data);
+				//$('#thanksResults').empty().append(data);
+				$('#answer').empty().append(data);
+				$( "#answerBox" ).popup( "open", { positionTo: "window" } );
+				/*
+				var box = confirm(data);
+				if (box == true) {
+					parent.location.href='taxipad_portal.php';
+				}
+				else {
+					parent.location.href='taxipad_portal.php';
+				}
+				*/
+				//return false;
+			}
+		});
+		setTimeout('check_answer()', 1000);
+    }
+    function cancel(idcourse)
+    {
+		//alert(idcourse);
+        $.post("https://ssl14.ovh.net/~taxibleu/server34/diary.php?idcourse=" + idcourse + "&ack=1&db=1&cab_wont=1&del=1"); 
+    }        
+	function stopCall()
+	{
+		$.mobile.loading( "show" );
+		$('#dblinks').empty();	 
+		clearInterval(sec);
+		clearInterval(time);
+		clearTimeout(endcourse);
+		cancel(idcourse);
+		//$('#map').gmap('destroy');
+		//$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide", reverse: true} );
+		var wait2getBack = setTimeout( function () {
+			document.location.href='index.html';
+		}, 2000);
+	}
+    function goback(flag)
+    {
+        document.location.href=flag;
+    }        
+    function processMap()
+    {
+        $.mobile.pageContainer.pagecontainer("change", "#map_page", { transition: "slide"} );
+    }
+	/*
+	$('#infos').live("swiperight", function() {
+		$("#panel_poper").trigger('click');
+	});
+	*/
+    </script>
+    </head>
+    <body style="margin:0px; padding:0px;">
+    <div data-role="panel" id="homepanel" data-position="left" data-display="reveal">
+        <!-- panel content goes here -->
+        <ul data-role="listview" data-inset="true" data-theme="b">
+          <li><a href="#infos" data-rel="close" class="ui-btn ui-btn-icon-left ui-icon-home"><b>Accueil</b></a></li>
+          <li><a href="#" onClick="Share()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-mail"><b>Partager l&rsquo;app</b></a></li>
+          <li><a href="#" onClick="goScan()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-camera"><b>Scanner un code</b></a></li>
+          <li><a href="#account" class="ui-btn ui-btn-icon-left ui-icon-user">Mon compte</a></li>
+          <li><a href="#history" class="ui-btn ui-btn-icon-left ui-icon-bars">Historique</a></li>
+          <li><a href="#fleet_page" class="ui-btn ui-btn-icon-left ui-icon-eye">Taxis disponibles</a></li>
+        </ul>
+        <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-power" onClick="dc()">D&eacute;connexion</button>
+    </div><!-- /panel -->
+    <div data-role="page" data-theme="b" style="background: #000 url(visuels/bg.png) top left repeat-x;" id="infos">
+        <div data-role="header">
+            <a href="#homepanel" id="panel_poper" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-arrow-l"><p style="font-size:16px"><b>Menu</b></p></a>
+        </div>
+        <div class="ui-content" role="main">
+            <center>
+            <!-- 
+            <a href="taxipad_portal.php" class="back"><img src="picts/Back_blue.png" /></a>
+            <a href="taxipad_portal.php" class="back"><img src="picts/back_button.png" /></a>
+            -->
+            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; margin-top:1em; display:block;">
+                <!-- <h1 class="hostname">Commander un taxi</h1> -->
+                <img src="visuels/logo.png" width="60%" style="margin-bottom:-0.6em; max-width:252px"/>
+                <input type="hidden" id="operator" size="40" value="0"/>
+                <input type="hidden" id="hostname" size="40" value=""/>
+                <input type="hidden" id="group" size="16" value="1"/>
+                <input type="hidden" id="exclu" size="1" value="0"/>
+                <input type="hidden" id="goFavs" size="1" value="0"/>
+                <table width="100%" border="0">
+                	<thead><tr><th width="90%"></th><th width="10%"></th></tr></thead>
+                    <tbody>
+                	<tr><td>
+                        <input type="text" id="addressInput" data-clear-btn="true" size="40" placeholder="Adresse RDV" width="90%"/>
+                    </td><td>
+                        <button onClick="locateMe()" class="ui-btn ui-btn-b ui-icon-location ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button>
+                    </td></tr>
+                <input type="hidden" id="DestAddress" size="10" value="DESTINATION"/>
+                	<tr><td>
+                        <input type="text" id="Accurate" data-clear-btn="true" class="mustHave" size="32" placeholder="Nom *"/>
+                    </td><td>
+                        <button onClick="getContact()" class="ui-btn ui-btn-b ui-icon-edit ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button>
+                    </td></tr>
+                	<tr><td>
+                        <input type="tel" id="cellular" data-clear-btn="true" class="mustHave" size="20" placeholder="Tel *"/>
+                    </td><td>
+                        <a href="#rememberMe" data-rel="popup" data-position-to="window" class="ui-btn ui-btn-b ui-icon-heart ui-shadow-icon ui-btn-icon-notext ui-corner-all"></a>
+                    </td></tr>
+                    </tbody>
+                </table>
+                <!-- <p style="font-size:small;"><em>*</em> Ces informations sont obligatoires</p> -->
+                <p class="expends">D&eacute;tails<img src="visuels/lineDown.png" width="100%"/></p>
+                <div id="details">
+                    <label for="howMany">Nombre de passagers :</label>
+                    <input name="howMany" id="howMany" min="1" max="20" value="1" data-theme="a" data-show-value="true" data-popup-enabled="true" type="range">
+                    <select id="CarType"> 
+                        <option value="Berline" selected>Vehicule</option>
+                        <option value="Berline">Berline</option>
+                        <option value="Break">Break</option>
+                        <option value="Van">Monospace</option>
+                    </select>
+                    <!-- 
+                    <select id="medic"> 
+                        <option value="0" selected>Conventionn&eacute;</option>
+                        <option value="0">Non</option>
+                        <option value="1">Oui</option>
+                    </select>
+                    -->
+                    <select id="Pay"> 
+                        <option value="0" selected>CB / AMEX</option>
+                        <option value="0">Aucun</option>
+                        <option value="1">CB</option>
+                        <option value="2">AMEX</option>
+                    </select>
+                    <textarea id="coms" placeholder="Commentaires"></textarea>
+                </div>
+                <p class="expends">Infos Resa<img src="visuels/lineDown.png" width="100%"/></p>
+                <div id="book">
+                    <p id="datelabel"><b>Date et heure du RDV si r&eacute;servation :</b></p>
+                    <span style="display:inline-block;width: 48%;">
+                        <input type="date" id="date" data-role="date" placeholder="jj/mm/aaaa" data-clear-btn="true" data-inline="true" value=""/>
+                    </span>
+                    <span style="display:inline-block;width: 48%;">
+                        <input type="time" id="when" placeholder="hh:mm" data-clear-btn="true" data-inline="true" value=""/>
+                    </span>
+                </div>
+                <input type="hidden" id="radiusSelect" value="100" />
+                <p>&nbsp;</p>
+                <div id="next-box"><input type="button" id="next" data-theme="a" value="Suivant"/></div>
+                <div id="search-box"><a href="#map_page" class="ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-search" id="search">Commander un taxi</a></div>
+                <div id="book-box"><a href="#book_page" class="ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-clock" id="booking">R&eacute;server un taxi</a></div>
+                <div data-role="popup" data-theme="a" id="errorPop" data-dismissible="true">
+					<a href="#infos" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-icon-delete ui-btn-icon-notext ui-btn-right">Fermer</a>
+                    <div data-theme="a" data-role="header">
+                        <h1>
+                            G&eacute;olocalisation
+                        </h1>
+                    </div>
+                    <div class="ui-content" role="main">
+                        <div id="resultsGeo"></div>
+                    </div>
+                </div>
+                <div data-role="popup" data-theme="a" id="rememberMe" data-dismissible="true">
+ 					<a href="#infos" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-icon-delete ui-btn-icon-notext ui-btn-right">Fermer</a>
+                   <div data-theme="a" data-role="header">
+                        <p style="font-size:21px;text-align:center;"><b>
+                            Enregistrements
+                        </b></p>
+                    </div>
+                    <div class="ui-content" role="main">
+                        <div id="regLinks"></div>
+                    </div>
+                </div>
+            </div>
+            </center>
+        </div>
+    </div>
+    <div data-role="page" data-theme="b" id="map_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+        <div class="ui-content" role="main">
+            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+                
+                <center>
+                <div id="deliv-hide" style="width: 0px; height: 0px; visibility:hidden;">
+                	<input type="button" onClick="" id="deliver" value="" />
+                </div>
+                <div class="ui-bar-a ui-corner-all ui-shadow" style="padding:1em; margin-bottom: 6px;"><p><b>Veuillez patienter pendant la recherche SVP</b></p></div>
+                </center>
+                <div id="map" style="height:360px;"></div>
+                <div id="left" style="width: 0px; height: 0px; visibility:hidden;">
+                    <div id="dblinks">
+                    </div>
+                </div>
+                <input type="button" class="cancel" id="cancel" onClick="stopCall()" value=" Retour / Annulation " />
+                <div id="test"></div>
+                <div data-role="popup" data-theme="a" id="answerBox" data-dismissible="false" data-position-to="window">
+                    <div data-theme="a" data-role="header">
+                        <h1>
+                            Confirmation
+                        </h1>
+                    </div>
+                    <div class="ui-content" role="main">
+                        <div id="answer"></div>
+                        <input type="button" value="OK" onClick="goback('index.html')"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" data-theme="b" style="background: #000 url(visuels/bg.png) top left repeat-x;" id="connect">
+        <div class="ui-content" role="main">
+            <center>
+            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; margin-top:1em; display:block;">
+                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
+                <input type="tel" id="login" data-clear-btn="true" size="40" placeholder="Identifiant"/>
+                <input type="password" id="pwd" data-clear-btn="true" size="40" placeholder="Mot de passe"/>
+                <div id="loginReturns"></div>
+                <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check" onClick="login()">Connexion</button>
+                <a href="#subscription" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-user">Nouvelle Inscription</a>
+                <p style="font-size:small;"><a href="#" id="displayForgot">Mot de passe oubli&eacute;</a></p>
+                <div id="forgotForm" style="display:none;">
+                    <input type="tel" id="forgotTel" data-clear-btn="true" size="40" placeholder="Identifiant"/>
+                    <input type="email" id="forgotMail" size="32" maxlength="60" placeholder="email"/>
+                    <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-mail" onClick="forgottenPwd()">Envoyer</button>
+                </div>
+                <div id="fogotReturns"></div>
+            </div>
+            </center>
+        </div>
+    </div>
+    <div data-role="page" data-theme="b" id="subscription" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+        <div class="ui-content" role="main">
+            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+            	<center>
+                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
+                <input type="text" id="subName" data-clear-btn="true" size="40" placeholder="Nom"/>
+                <input type="email" id="subMail" data-clear-btn="true" size="40" placeholder="Email"/>
+                <input type="tel" id="subTel" data-clear-btn="true" size="40" placeholder="Tel (Sans espace SVP)"/>
+                <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check" onClick="subscribe()">Inscription</button>
+                </center>
+                <div id="data"></div>
+                <div id="subReturns"></div>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" data-theme="b" id="account" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+        <div data-role="header">
+            <a href="#homepanel" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-arrow-l"><p style="font-size:16px"><b>Menu</b></p></a>
+        </div>
+        <div class="ui-content" role="main">
+            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+            	<center>
+                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
+                <input type="tel" id="accTel" data-clear-btn="true" size="40" placeholder="Tel (Sans espace SVP)"/>
+                <input type="text" id="accName" data-clear-btn="true" size="40" placeholder="Nom"/>
+                <input type="email" id="accMail" data-clear-btn="true" size="40" placeholder="Email"/>
+                <input type="password" id="accPwd" data-clear-btn="true" size="40" placeholder="Mot de passe"/>
+                <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-edit" onClick="accountMod()">Modifier</button>
+                </center>
+                <div id="accReturns"></div>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" data-theme="b" id="history" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+        <div data-role="header">
+            <a href="#homepanel" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-arrow-l"><p style="font-size:16px"><b>Menu</b></p></a>
+            <button onClick="refreshHist()" class="ui-btn ui-btn-b ui-icon-refresh ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button>
+        </div>
+        <div class="ui-content" role="main">
+            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+            	<center>
+                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
+                <p style="font-size:16px"><b>Historique des courses</b></p>
+                </center>
+                <div class="ui-grid-a">
+                    <div class="ui-block-a"><div class="ui-bar ui-bar-a"><p>Courses prises</p><div id="hist_cont"></div></div></div>
+                    <div class="ui-block-b"><div class="ui-bar ui-bar-b"><p>R&eacute;servations</p><div id="book_cont"></div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" data-theme="b" id="book_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+        <div class="ui-content" role="main">
+            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+            	<center>
+                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
+                <p><b><br><br>Votre demande a &eacute;t&eacute; prise en compte, votre taxi prendra contact avec vous par t&eacute;l&eacute;phone ou sms.<br><br>Toute l&rsquo;&eacute;quipe myTaxi 34 vous remercie.</b></p>
+                <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-edit" onClick="goback('index.html')">Retour</button>
+                </center>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" data-theme="b" id="fleet_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+        <div data-role="header">
+            <a href="#homepanel" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-arrow-l"><p style="font-size:16px"><b>Menu</b></p></a>
+        </div>
+        <div class="ui-content" role="main">
+            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+            	<div class="spacer"></div>
+                <div id="fleet_map" style="height:460px;"></div>
+            	<div class="spacer"></div>
+                <div id="xml"></div>
+            </div>
+        </div>
+    </div>
+	</body>
+</html>
