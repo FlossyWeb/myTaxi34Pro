@@ -293,6 +293,7 @@
 		}, "json");
 	}
 	function accountMod() {
+		var tel = $.localStorage.getItem('tel');
 		var nom = $('#accName').val();
 		var newtel = $('#accTel').val();
 		var email = $('#accMail').val();
@@ -718,20 +719,21 @@
 					var lng = $(this).attr('lng');
 					var timestamp = $(this).attr('timestamp');
 					i = $(this).attr('count');
+					$('.cabNum').empty().append('Il y a actuellement '+i+' Taxis disponibles.');
 					var latlng = new google.maps.LatLng(lat, lng);			
 					var display_name = 'Taxi ' + name;
 					var cabIcon = 'visuels/cab_marker.png';
-					self.addMarker({ id: i ,'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
+					self.addMarker({ id: i ,'position': latlng, 'bounds': false, 'title': display_name, 'icon': cabIcon }).click(function() {
 						infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + name + ' - ' + address+ '</b></p>';
 						self.openInfoWindow({ 'content':  infoCont}, this);
 					});
-					//mapEvent.addBounds(latlng);
+					//sefl.addBounds(latlng);
 				});
 			});
-		}}); 
+		}});
 	});
 	
-	$('#fleet_page').live('pagecontainershow', function() {
+	$('#fleet_page').live('pageshow', function() {
 		$('#fleet_map').gmap('refresh');
 	});
 	////////////////////////////////////////////////////////////
@@ -1175,7 +1177,7 @@
             	<div class="spacer"></div>
                 <div id="fleet_map" style="height:460px;"></div>
             	<div class="spacer"></div>
-                <div id="xml"></div>
+                <span class="cabNum" style="font-size:24px; color:#FC0;"></span>
             </div>
         </div>
     </div>
