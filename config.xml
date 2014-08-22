@@ -14,7 +14,7 @@
 	   Réservez votre taxi simplement via votre mobile avec l'application My Taxi 34 Pro.
 	</description>
 
-    <preference name="phonegap-version" value="3.3.0" />
+    <preference name="phonegap-version" value="3.5.0" />
     <preference name="orientation"      value="default" />
     <preference name="target-device"    value="universal" />
     <preference name="fullscreen"       value="false" />
