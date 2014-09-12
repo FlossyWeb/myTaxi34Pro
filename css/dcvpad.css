@@ -109,3 +109,11 @@ em {
 input[type=text], input[type=tel], input[type=date], input[type=time] {
 	color: #000;
 }
+/* star rating ---------------------------- */
+.rating, .rating2, .rating3, .rating4 { float: right; }
+.rating > ul, .rating2 > ul, .rating3 > ul, .rating4 > ul { list-style: none; float: right; padding: 0; margin: 0;}
+.rating > ul > li, .rating2 > ul > li, .rating3 > ul > li, .rating4 > ul > li { float: left; margin-left: 2px; background: url(../visuels/star-rating.gif) no-repeat; width: 25px; height: 25px; cursor: pointer; }
+.rating > ul > li:first-child, .rating2 > ul > li:first-child, .rating3 > ul > li:first-child, .rating4 > ul > li:first-child { margin-right: 0; }
+.rating > ul > li.hover, .rating2 > ul > li.hover, .rating3 > ul > li.hover, .rating4 > ul > li.hover { background-position: -25px; }
+.rating > ul > li.active, .rating2 > ul > li.active, .rating3 > ul > li.active, .rating4 > ul > li.active { background-position: -50px; }
+.rating > span.less, .rating2 > span.less, .rating3 > span.less, .rating4 > span.less { cursor: pointer; background: url(../visuels/star-rating.gif) -75px no-repeat; display: block; float: right; height: 25px; width: 25px;}

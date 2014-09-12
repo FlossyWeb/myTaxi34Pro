@@ -43,6 +43,7 @@
     <script src="contactNumberPicker.js"></script>
     <script src="sms.js"></script>
     <script type="text/javascript" src="js/jquery.html5storage.min.js"></script>
+    <script type="text/javascript" src="js/jsimple-star-rating.min.js"></script>
     <script src="https://maps.google.com/maps/api/js?key=AIzaSyCvL4a4-LKLUXJrTwpJ4_UnkmtZSGgrVWg&sensor=false&libraries=places" type="text/javascript"></script>
 	<script type="text/javascript" src="js/jquery.geocomplete.min.js"></script>
 	<script type="text/javascript" src="ui/min/jquery.ui.map.full.min.js"></script>
@@ -56,7 +57,6 @@
 	var idcourse;
 	var time;
 	var endcourse; // Clears the timeout
-	var sec;
 	var regName1 = $.localStorage.getItem('regName1');
 	var regCell1 = $.localStorage.getItem('regCell1');
 	var regName2 = $.localStorage.getItem('regName2');
@@ -198,7 +198,6 @@
 			//alert('WTF');
 		}
 	}
-	
 	function getContact()
 	{
 		var successCallbackPick = function(result){
@@ -230,7 +229,6 @@
 			});
 		}
 	}
-	
 	function dc() {
 		$.localStorage.setItem('registeredUser', 0);
 		$.mobile.pageContainer.pagecontainer("change", "#connect", { transition: "slide"} );
@@ -388,6 +386,43 @@
 			$("#book_cont").empty().append(data);
 		}).done(function() { $.mobile.loading( "hide" ); });
 	});
+	function rateCab(rtaxi, ridcourse, rdep, rtel)
+	{
+		$.sessionStorage.setItem('rtaxi', rtaxi);
+		$.sessionStorage.setItem('ridcourse', ridcourse);
+		$.sessionStorage.setItem('rdep', rdep);
+		$.sessionStorage.setItem('rtel', rtel);
+		$.mobile.pageContainer.pagecontainer("change", "#rate_page", { transition: "slide"} );
+	}
+	$( '#rate_page' ).live( 'pagecreate',function(event){
+		var noted = $.sessionStorage.getItem('rtaxi');
+		$('#urate').empty().append('Vous notez le taxi '+noted);
+		$(".rating").starRating({
+			minus: false // step minus button
+		});
+		$(".rating2").starRating({
+			minus: false // step minus button
+		});
+		$(".rating3").starRating({
+			minus: false // step minus button
+		});
+		$(".rating4").starRating({
+			minus: false // step minus button
+		});
+	});
+	function rating()
+	{
+		var rtaxi = $.sessionStorage.getItem('rtaxi');
+		var ridcourse = $.sessionStorage.getItem('ridcourse');
+		var rdep = $.sessionStorage.getItem('rdep');
+		var rtel = $.sessionStorage.getItem('rtel');
+		var accueil = $(".rating").data("val");
+		var tarif = $(".rating2").data("val");
+		var vehicule = $(".rating3").data("val");
+		var conduite = $(".rating4").data("val");
+		//alert(rtaxi+' - '+ridcourse+' - '+rdep+' - '+rtel+' - '+accueil+' - '+tarif+' - '+vehicule+' - '+conduite);
+		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/rate.php", { taxi: rtaxi, idcourse: ridcourse, dep: rdep, tel: rtel, accueil: accueil, tarif: tarif, vehicule: vehicule, conduite: conduite, judge: 1}, function(data){ $('#rateBack').empty().append('Vos notes ont &eacute;t&eacute; prise en compte, Merci.');});
+	}
 	$( '#book_page' ).live( 'pagecreate',function(event){
 		var myDate = new Date();
 		idcourse = myDate.getTime();
@@ -676,37 +711,15 @@
 					// THIS ONE IS THE 0000 CAB AND LAST ONE SO...
 					clearInterval(time);
                     clearTimeout(endcourse); // Clears the current timeout
-                    clearInterval(sec);
 					//alert('Aucun taxi ne prend la course !!');
 					//return false;
 				}
 				index++;
-			}, 10000);
-    
-    
-            //clearTimeout(endcourse); // Clears the possible previous timeouts
-            endcourse = setTimeout( function () {
-                //if (stoper != 1) {
-                    //$('#cancel').trigger('click');// Cancels every non-acked request after 3 minutes !!
-                    cancel(idcourse);// Cancels every non-acked request after 3 minutes !!
-					clearInterval(time);
-                    clearTimeout(endcourse); // Clears the current timeout
-                    clearInterval(sec);
-                    //$.fancybox.close();
-                    var endbox = confirm('Vous devez soit relancer votre course (OK) soit rechercher de nouveau taxis !! (Annuler)');
-                    if (endbox == true) {
-						$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide", reverse: true} );
-                    }
-                    else {
-                        document.location.href='index.html';
-                    }
-                //}
-            }, 180000);
-            
+			}, 10000);            
         });
 	});
 	
-	$('#map_page').live('pagecontainershow', function() {
+	$('#map_page').live('pageshow', function() {
 		//demo.add('basic_map', function() { $('#map').gmap('refresh'); }).load('basic_map');
 		//$('#map').gmap("option", "center", mobileMap.center);
 		$('#map').gmap('refresh');
@@ -716,7 +729,7 @@
 	$('#fleet_page').live('pagecreate', function() {
 		$('#fleet_map').gmap({'center': mobileMap.center, 'zoom': mobileMap.zoom, 'disableDefaultUI':false, 'mapTypeId': google.maps.MapTypeId.ROADMAP, 'callback': function() {
 			var self = this;
-			$.post('https://ssl14.ovh.net/~taxibleu/server34/station_fleet_xml.php?group=1', function(xml){
+			$.post('https://ssl14.ovh.net/~taxibleu/appserver/station_fleet_xml.php?group=1', function(xml){
 				$(xml).find('marker').each(function(){
 					var name = $(this).attr('name');
 					var address = $(this).attr('address');
@@ -740,6 +753,50 @@
 	
 	$('#fleet_page').live('pageshow', function() {
 		$('#fleet_map').gmap('refresh');
+	});
+	////////////////////////////////////////////////////////////
+	
+	function followCab(ftaxi, fidcourse, fdep, ftel)
+	{
+		$.sessionStorage.setItem('ftaxi', ftaxi);
+		$.sessionStorage.setItem('fidcourse', fidcourse);
+		$.sessionStorage.setItem('fdep', fdep);
+		$.sessionStorage.setItem('ftel', ftel);
+		$.mobile.pageContainer.pagecontainer("change", "#follow", { transition: "slide"} );
+	}
+	$('#follow').live('pagecreate', function() {
+		var ftaxi = $.sessionStorage.getItem('ftaxi');
+		var fidcourse = $.sessionStorage.getItem('fidcourse');
+		var fdep = $.sessionStorage.getItem('fdep');
+		var ftel = $.sessionStorage.getItem('ftel');
+		//alert(ftaxi+' - '+ftel);
+		$('#follow_map').gmap({'center': mobileMap.center, 'zoom': mobileMap.zoom, 'disableDefaultUI':false, 'mapTypeId': google.maps.MapTypeId.ROADMAP, 'callback': function() {
+			var self = this;
+			$.post('https://ssl14.ovh.net/~taxibleu/appserver/follow.php', { taxi: ftaxi, idcourse: fidcourse, dep: fdep, tel: ftel }, function(data){
+				var latlng = new google.maps.LatLng(data.lat, data.lng);
+				var display_name = 'Taxi ' + data.name;
+				var cabIcon = 'visuels/cab_marker.png';
+				self.addMarker({ id: '1' ,'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
+					infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + data.name + ' - ' + data.address+ ' &agrave; ' + data.timestamp+ '</b></p>';
+					self.openInfoWindow({ 'content':  infoCont}, this);
+				});
+			}, "json");
+			var track = setInterval( function () {
+				$.post('https://ssl14.ovh.net/~taxibleu/appserver/follow.php', { taxi: ftaxi, idcourse: fidcourse, dep: fdep, tel: ftel }, function(data){
+					var latlng = new google.maps.LatLng(data.lat, data.lng);
+					var display_name = 'Taxi ' + data.name;
+					var cabIcon = 'visuels/cab_marker.png';
+					self.addMarker({ id: '1' ,'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
+						infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + data.name + ' - ' + data.address+ ' &agrave; ' + data.timestamp+ '</b></p>';
+						self.openInfoWindow({ 'content':  infoCont}, this);
+					});
+				}, "json");
+			}, 30000); 
+		}});
+	});
+	
+	$('#follow').live('pageshow', function() {
+		$('#follow_map').gmap('refresh');
 	});
 	////////////////////////////////////////////////////////////
 	
@@ -914,14 +971,12 @@
     }        
 	function stopCall()
 	{
-		$.mobile.loading( "show" );
+		//$.mobile.loading( "show" );
 		$('#dblinks').empty();	 
-		clearInterval(sec);
 		clearInterval(time);
 		clearTimeout(endcourse);
 		cancel(idcourse);
-		//$('#map').gmap('destroy');
-		//$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide", reverse: true} );
+		$( "#backPop" ).popup( "open", { positionTo: "window" } );
 		var wait2getBack = setTimeout( function () {
 			document.location.href='index.html';
 		}, 2000);
@@ -945,12 +1000,12 @@
     <div data-role="panel" id="homepanel" data-position="left" data-display="reveal">
         <!-- panel content goes here -->
         <ul data-role="listview" data-inset="true" data-theme="b">
-          <li><a href="#infos" data-rel="close" class="ui-btn ui-btn-icon-left ui-icon-home"><b>Accueil</b></a></li>
+          <li><a href="#infos" class="ui-btn ui-btn-icon-left ui-icon-home"><b>Accueil</b></a></li>
+          <li><a href="#history" class="ui-btn ui-btn-icon-left ui-icon-bars">Historique</a></li>
+          <li><a href="#account" class="ui-btn ui-btn-icon-left ui-icon-user">Mon compte</a></li>
+          <li><a href="#fleet_page" class="ui-btn ui-btn-icon-left ui-icon-eye">Taxis disponibles</a></li>
           <li><a href="#" onClick="Share()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-mail"><b>Partager l&rsquo;app</b></a></li>
           <li><a href="#" onClick="goScan()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-camera"><b>Scanner un code</b></a></li>
-          <li><a href="#account" class="ui-btn ui-btn-icon-left ui-icon-user">Mon compte</a></li>
-          <li><a href="#history" class="ui-btn ui-btn-icon-left ui-icon-bars">Historique</a></li>
-          <li><a href="#fleet_page" class="ui-btn ui-btn-icon-left ui-icon-eye">Taxis disponibles</a></li>
         </ul>
         <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-power" onClick="dc()">D&eacute;connexion</button>
     </div><!-- /panel -->
@@ -960,10 +1015,6 @@
         </div>
         <div class="ui-content" role="main">
             <center>
-            <!-- 
-            <a href="taxipad_portal.php" class="back"><img src="picts/Back_blue.png" /></a>
-            <a href="taxipad_portal.php" class="back"><img src="picts/back_button.png" /></a>
-            -->
             <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; margin-top:1em; display:block;">
                 <!-- <h1 class="hostname">Commander un taxi</h1> -->
                 <img src="visuels/logo.png" width="60%" style="margin-bottom:-0.6em; max-width:252px"/>
@@ -980,7 +1031,7 @@
                     </td><td>
                         <button onClick="locateMe()" class="ui-btn ui-btn-b ui-icon-location ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button>
                     </td></tr>
-                <input type="hidden" id="DestAddress" size="10" value="DESTINATION"/>
+                    <input type="hidden" id="DestAddress" size="10" value="DESTINATION"/>
                 	<tr><td>
                         <input type="text" id="Accurate" data-clear-btn="true" class="mustHave" size="32" placeholder="Nom *"/>
                     </td><td>
@@ -1088,6 +1139,16 @@
                         <input type="button" value="OK" onClick="goback('index.html')"/>
                     </div>
                 </div>
+                <div data-role="popup" data-theme="a" id="backPop" data-dismissible="false">
+                    <div data-theme="a" data-role="header">
+                        <h1>
+                            Hors d&eacute;lai
+                        </h1>
+                    </div>
+                    <div class="ui-content" role="main">
+                        <p><strong>Aucun taxis n&rsquo;a r&eacute;pondu, vous devriez rechercher de nouveau.</strong></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1184,6 +1245,43 @@
                 <div id="fleet_map" style="height:460px;"></div>
             	<div class="spacer"></div>
                 <span class="cabNum" style="font-size:24px; color:#FC0;"></span>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" data-theme="b" id="follow" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+        <div data-role="header">
+            <button onClick="goback('index.html')" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-power"><p style="font-size:16px"><b>Arr&ecirc;ter</b></p></button>
+        </div>
+        <div class="ui-content" role="main">
+            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+            	<div class="spacer"></div>
+                <div id="follow_map" style="height:460px;"></div>
+            	<div class="spacer"></div>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" data-theme="b" id="rate_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+        <div data-role="header">
+            <a href="#homepanel" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-arrow-l"><p style="font-size:16px"><b>Menu</b></p></a>
+        </div>
+        <div class="ui-content" role="main">
+            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+            	<center>
+                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
+                <div id="urate"></div>
+                </center>
+                <div class="ui-bar-a ui-corner-all ui-shadow" style="padding:1em; display:block;">
+                    Accueil :
+                    <div class="rating" data-rating-max="5"></div><div class="cleaner"></div>
+                    Tarif : 
+                    <div class="rating2" data-rating-max="5"></div><div class="cleaner"></div>
+                    Propret&eacute; / Vehicule : 
+                    <div class="rating3" data-rating-max="5"></div><div class="cleaner"></div>
+                    Conduite / itin&eacute;raire : 
+                    <div class="rating4" data-rating-max="5"></div><div class="spacer"></div>
+                </div>
+                <center><div id="rateBack"></div></center>
+                <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check" onClick="rating()">Envoyer</button>
             </div>
         </div>
     </div>
