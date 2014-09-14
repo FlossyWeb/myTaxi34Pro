@@ -756,12 +756,14 @@
 	});
 	////////////////////////////////////////////////////////////
 	
-	function followCab(ftaxi, fidcourse, fdep, ftel)
+	function followCab(ftaxi, fidcourse, fdep, ftel, frdv, ftable)
 	{
 		$.sessionStorage.setItem('ftaxi', ftaxi);
 		$.sessionStorage.setItem('fidcourse', fidcourse);
 		$.sessionStorage.setItem('fdep', fdep);
 		$.sessionStorage.setItem('ftel', ftel);
+		$.sessionStorage.setItem('frdv', frdv);
+		$.sessionStorage.setItem('ftable', ftable);
 		$.mobile.pageContainer.pagecontainer("change", "#follow", { transition: "slide"} );
 	}
 	$('#follow').live('pagecreate', function() {
@@ -769,27 +771,81 @@
 		var fidcourse = $.sessionStorage.getItem('fidcourse');
 		var fdep = $.sessionStorage.getItem('fdep');
 		var ftel = $.sessionStorage.getItem('ftel');
-		//alert(ftaxi+' - '+ftel);
-		$('#follow_map').gmap({'center': mobileMap.center, 'zoom': mobileMap.zoom, 'disableDefaultUI':false, 'mapTypeId': google.maps.MapTypeId.ROADMAP, 'callback': function() {
+		var frdv = $.sessionStorage.getItem('frdv');
+		var ftable = $.sessionStorage.getItem('ftable');
+		$('#follow_map').gmap({'center': mobileMap.center, 'zoom': mobileMap.zoom, 'disableDefaultUI':true, 'mapTypeId': google.maps.MapTypeId.ROADMAP, 'callback': function() {
 			var self = this;
-			$.post('https://ssl14.ovh.net/~taxibleu/appserver/follow.php', { taxi: ftaxi, idcourse: fidcourse, dep: fdep, tel: ftel }, function(data){
-				var latlng = new google.maps.LatLng(data.lat, data.lng);
-				var display_name = 'Taxi ' + data.name;
-				var cabIcon = 'visuels/cab_marker.png';
-				self.addMarker({ id: '1' ,'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
-					infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + data.name + ' - ' + data.address+ ' &agrave; ' + data.timestamp+ '</b></p>';
-					self.openInfoWindow({ 'content':  infoCont}, this);
+			navigator.geolocation.getCurrentPosition(function(position, status) {
+				var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude)
+				self.get('map').panTo(latlng);
+				var userIcon = 'visuels/blue_marker.png';
+				self.addMarker({ id: 'you', 'position': latlng, 'bounds': true, 'icon': userIcon }).click(function() {
+					self.openInfoWindow({ 'content':  '<p style="color:#09F;"><b>Vous &Ecirc;tes ici</b></p>' }, this);
 				});
-			}, "json");
-			var track = setInterval( function () {
-				$.post('https://ssl14.ovh.net/~taxibleu/appserver/follow.php', { taxi: ftaxi, idcourse: fidcourse, dep: fdep, tel: ftel }, function(data){
+			}, showError,{enableHighAccuracy:true, maximumAge:0});
+			var geocoder = new google.maps.Geocoder();
+			var address = frdv;
+			geocoder.geocode({address: address}, function(results, status) {
+				if (status == google.maps.GeocoderStatus.OK) {
+					var rdvPlace = results[0].geometry.location;
+					//self.refresh();
+					var rdvIcon = 'visuels/rdv_marker.png';
+					self.get('map').panTo(rdvPlace);
+					//self.get('map').setZoom(12);
+					//self.get('map').setCenter(rdvPlace);
+					self.addMarker({'position': rdvPlace, 'bounds': true, 'icon': rdvIcon }).click(function() {
+						self.openInfoWindow({ 'content': '<p style="color:#6C0;"><b>Lieu de prise en charge</b></p>' }, this);
+					});
+					//var gcenter = rdvPlace.lat().toFixed(4) +", "+ rdvPlace.lng().toFixed(4);
+					//var circleCenter = new google.maps.LatLng(gcenter);
+					self.addShape('Circle', {
+						'strokeWeight': 0, 
+						'fillColor': "#008595", 
+						'fillOpacity': 0.25, 
+						'center': rdvPlace, 
+						'radius': 500, 
+						'clickable': true 
+					});
+				} else {
+					alert('ADRESSE RDV : '+address+' NON TROUVEE ');
+				}
+			});
+			$.post('https://ssl14.ovh.net/~taxibleu/appserver/follow.php', { taxi: ftaxi, idcourse: fidcourse, dep: fdep, tel: ftel, table: ftable }, function(data){
+				if(data.ok) {
 					var latlng = new google.maps.LatLng(data.lat, data.lng);
 					var display_name = 'Taxi ' + data.name;
 					var cabIcon = 'visuels/cab_marker.png';
-					self.addMarker({ id: '1' ,'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
+					self.addMarker({ id: 'cab', 'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
 						infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + data.name + ' - ' + data.address+ ' &agrave; ' + data.timestamp+ '</b></p>';
 						self.openInfoWindow({ 'content':  infoCont}, this);
 					});
+				}
+				else {
+					alert('Vous ne pouvez suivre un taxi que 30 minutes avant le RDV !!');
+					document.location.href='index.html';
+				}
+			}, "json");
+			var track = setInterval( function () {
+				$.post('https://ssl14.ovh.net/~taxibleu/appserver/follow.php', { taxi: ftaxi, idcourse: fidcourse, dep: fdep, tel: ftel, table: ftable }, function(data){
+					var markerCab = self.get('markers')['cab'];
+					markerCab.setVisible(false);
+					var latlng = new google.maps.LatLng(data.lat, data.lng);
+					var display_name = 'Taxi ' + data.name;
+					var cabIcon = 'visuels/cab_marker.png';
+					self.addMarker({ id: 'cab', 'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
+						infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + data.name + ' - ' + data.address+ ' &agrave; ' + data.timestamp+ '</b></p>';
+						self.openInfoWindow({ 'content':  infoCont}, this);
+					});
+					var markerYou = self.get('markers')['you'];
+					markerYou.setVisible(false);
+					navigator.geolocation.getCurrentPosition(function(position, status) {
+						var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude)
+						self.get('map').panTo(latlng);
+						var userIcon = 'visuels/blue_marker.png';
+						self.addMarker({ id: 'you', 'position': latlng, 'bounds': true, 'icon': userIcon }).click(function() {
+							self.openInfoWindow({ 'content':  '<p style="color:#09F;"><b>Vous &Ecirc;tes ici</b></p>' }, this);
+						});
+					}, showError,{enableHighAccuracy:true, maximumAge:0});
 				}, "json");
 			}, 30000); 
 		}});
@@ -927,7 +983,7 @@
         //$("a.load").trigger('click');
         var GoOn = setTimeout( function () {
             $("#deliver").trigger('click');
-        }, 6000);
+        }, 2000);
     }
 	
     function sendJob(url)
@@ -1258,6 +1314,10 @@
                 <div id="follow_map" style="height:460px;"></div>
             	<div class="spacer"></div>
             </div>
+            <center><p><strong>
+            	Vous ne pouvez suivre un taxi que 30 minutes avant le RDV.<br>
+                Les positions sont actualis&eacute;es toutes les 30 secondes.
+            </strong></p></center>
         </div>
     </div>
     <div data-role="page" data-theme="b" id="rate_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
