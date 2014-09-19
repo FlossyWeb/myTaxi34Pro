@@ -729,7 +729,7 @@
 	$('#fleet_page').live('pagecreate', function() {
 		$('#fleet_map').gmap({'center': mobileMap.center, 'zoom': mobileMap.zoom, 'disableDefaultUI':false, 'mapTypeId': google.maps.MapTypeId.ROADMAP, 'callback': function() {
 			var self = this;
-			$.post('https://ssl14.ovh.net/~taxibleu/appserver/station_fleet_xml.php?group=1', function(xml){
+			$.post('https://ssl14.ovh.net/~taxibleu/server34/station_fleet_xml.php?group=1', function(xml){
 				$(xml).find('marker').each(function(){
 					var name = $(this).attr('name');
 					var address = $(this).attr('address');
