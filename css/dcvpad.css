@@ -70,6 +70,12 @@ ul, li {
 	-moz-box-shadow: 0 0 6px #000; 
 	-webkit-box-shadow: 0 0 6px #000;
 }
+/* Stack all blocks to start */
+.responsive .ui-block-a,
+.responsive .ui-block-b{
+    width: 100%;
+    float: none;
+}
 /* Collapsing borders */
 .responsive > div + div .ui-body {
     border-top-width: 0;
