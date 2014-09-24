@@ -70,6 +70,33 @@ ul, li {
 	-moz-box-shadow: 0 0 6px #000; 
 	-webkit-box-shadow: 0 0 6px #000;
 }
+/* Collapsing borders */
+.responsive > div + div .ui-body {
+    border-top-width: 0;
+}
+/* 1st breakpoint - Float A and B, leave A full width on top */
+@media all and (min-width: 32em) {
+    .responsive {
+        overflow: hidden; /* Use this or a "clearfix" to give the container height */
+    }
+    .responsive .ui-body {
+       min-height: 14em;
+    }
+    .responsive .ui-block-a,
+    .responsive .ui-block-b {
+      float: left;
+      width: 49.95%;
+    }
+    .responsive > div + div .ui-body {
+        border-top-width: 1px;
+    }
+    .responsive > div:first-child .ui-body {
+        border-bottom-width: 0;
+    }
+    .responsive > div:last-child .ui-body {
+        border-left-width: 0;
+    }
+}
 ul.popers a {
 	display: inline;
 }
