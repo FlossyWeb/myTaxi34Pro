@@ -2,7 +2,7 @@
 <widget xmlns = "http://www.w3.org/ns/widgets"
 		xmlns:gap = "http://phonegap.com/ns/1.0"
 		id = "com.taxibleuservices.mytaxi34pro"
-		version = "1.0.1">
+		version = "1.0.2">
     
     <author href="http://flossyweb.com" email="contact@flossyweb.com">
         FRANCOIS-REGIS SIMON
@@ -14,7 +14,7 @@
 	   Réservez votre taxi simplement via votre mobile avec l'application My Taxi 34 Pro.
 	</description>
 
-    <preference name="phonegap-version" value="3.5.0" />
+    <preference name="phonegap-version" value="3.6.3" />
     <preference name="orientation"      value="default" />
     <preference name="target-device"    value="universal" />
     <preference name="fullscreen"       value="false" />
