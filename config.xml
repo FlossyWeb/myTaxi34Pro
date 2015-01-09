@@ -2,7 +2,7 @@
 <widget xmlns = "http://www.w3.org/ns/widgets"
 		xmlns:gap = "http://phonegap.com/ns/1.0"
 		id = "com.taxibleuservices.mytaxi34pro"
-		version = "1.0.2">
+		version = "1.2.0">
     
     <author href="http://flossyweb.com" email="contact@flossyweb.com">
         FRANCOIS-REGIS SIMON
@@ -44,17 +44,19 @@
 	<gap:plugin name="tr.bel.mamak.sms_plagin" version="0.1.0" />
 
     <icon src="icon.png" />
-	
 	<icon src="icons/ios/icon-57.png" gap:platform="ios" width="57" height="57" />
 	<icon src="icons/ios/icon-72.png" gap:platform="ios" width="72" height="72" />
 	<icon src="icons/ios/icon-76.png" gap:platform="ios" width="76" height="76" />
 	<icon src="icons/ios/icon-114.png" gap:platform="ios" width="114" height="114" />
 	<icon src="icons/ios/icon-120.png" gap:platform="ios" width="120" height="120" />
 	<icon src="icons/ios/icon-152.png" gap:platform="ios" width="152" height="152" />
+	<icon src="icons/ios/icon-180.png" gap:platform="ios" width="180" height="180" />
 	<gap:splash src="splash.png" />
 	<gap:splash src="splash/ios/Default.png" gap:platform="ios" width="320" height="480" />
 	<gap:splash src="splash/ios/Default_at_2x.png" gap:platform="ios" width="640" height="960" />
 	<gap:splash src="splash/ios/Default_iphone5.png" gap:platform="ios" width="640" height="1136" />
+	<gap:splash src="splash/ios/Default_iphone6.png" gap:platform="ios" width="750" height="1334" />
+	<gap:splash src="splash/ios/Default_iphone6plus.png" gap:platform="ios" width="1242" height="2208" />
     
 	<access origin="*" />
 	

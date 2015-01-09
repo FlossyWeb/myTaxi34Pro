@@ -23,6 +23,7 @@
             href="visuels/startup_image_i5.png">
     <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
     <link type="text/css" rel="stylesheet" href="css/dcvpad.css" />
+    <link type="text/css" rel="stylesheet" href="css/jqm-datebox-1.4.5.min.css" />
 	<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
     <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 	<script type="text/javascript">
@@ -45,6 +46,8 @@
     <script src="sms.js"></script>
     <script type="text/javascript" src="js/jquery.html5storage.min.js"></script>
     <script type="text/javascript" src="js/jsimple-star-rating.min.js"></script>
+    <script type="text/javascript" src="js/jqm-datebox-1.4.5.min.js"></script>
+    <script type="text/javascript" src="js/jqm-datebox-fr-formats.js"></script>
     <script src="https://maps.google.com/maps/api/js?key=AIzaSyCvL4a4-LKLUXJrTwpJ4_UnkmtZSGgrVWg&sensor=false&libraries=places" type="text/javascript"></script>
 	<!-- <script type="text/javascript" src="js/jquery.geocomplete.min.js"></script> -->
 	<script type="text/javascript" src="ui/min/jquery.ui.map.full.min.js"></script>
@@ -107,7 +110,7 @@
 		function onBackKeyDown() {
 			//history.back();
 			//changePage('#infos');
-			alert('Veuillez ne pas quitter myTaxi pendant la recheche de taxi disponibles');
+			navigator.notification.alert('Veuillez ne pas quitter myTaxi pendant la recheche de taxi disponibles');
 		}
 		// Bouton menu
 		function onMenuKeyDown() {
@@ -142,7 +145,7 @@
 				//window.plugins.childBrowser.showWebPage(searchUrl, { showLocationBar: true });
 				window.open(searchUrl,'_blank','location=yes,enableViewportScale=yes,closebuttoncaption=Fermer');
 			}, 500);
-		} else { alert("Format du scan: " + result.format + 
+		} else { navigator.notification.alert("Format du scan: " + result.format + 
 				  " NON SUPPORTE. Valeur du scan: " + result.text);
 		}
 	}
@@ -153,14 +156,14 @@
 			scanner.scan(
 				scanSuccess, 
 				function (error) {
-					alert("Scan Erreur: " + error);
+					navigator.notification.alert("Scan Erreur: " + error);
 				}
 			);
 		}
 		else {
 			$('#smsReturn').empty().append('Cette fonction n&rsquo;est disponible que sur l&rsquo;application mobile');
 			$( "#popSms" ).popup( "open", { positionTo: "window" } );
-			//alert('WTF');
+			//navigator.notification.alert('WTF');
 		}
 	}
 
@@ -168,17 +171,17 @@
 	{
 		var successCallbackPick = function(result){
 			setTimeout(function(){
-				//alert(result.name + " " + result.phoneNumber);
+				//navigator.notification.alert(result.name + " " + result.phoneNumber);
 				var number = result.phoneNumber;
 				var message = "Téléchargez l'app myTaxi 34 en suivant ce lien : http://www.taximedia.fr/stores.php?app=mytaxi&dep=34";
 				var intent = ""; //leave empty for sending sms using default intent
 				var success = function () {
-					//alert('Message sent successfully');
+					//navigator.notification.alert('Message sent successfully');
 					$('#smsReturn').empty().append('Message envoy&eacute; avec succ&egrave;s, Merci');
 					$( "#popSms" ).popup( "open", { positionTo: "window" } );
 				};
 				var error = function (e) {
-					//alert('Message Failed:' + e); 
+					//navigator.notification.alert('Message Failed:' + e); 
 					$('#smsReturn').empty().append('Probl&egrave;me lors de l&rsquo;envoi du message: ' + e);
 					$( "#popSms" ).popup( "open", { positionTo: "window" } );
 				};
@@ -187,7 +190,7 @@
 		};
 		var failedCallbackPick = function(result){
 			setTimeout(function(){
-				//alert(result);
+				//navigator.notification.alert(result);
 			},500);
 		}
 		if (app) {
@@ -197,14 +200,14 @@
 		else {
 			$('#smsReturn').empty().append('Cette fonction n&rsquo;est disponible que sur l&rsquo;application mobile');
 			$( "#popSms" ).popup( "open", { positionTo: "window" } );
-			//alert('WTF');
+			//navigator.notification.alert('WTF');
 		}
 	}
 	function getContact()
 	{
 		var successCallbackPick = function(result){
 			setTimeout(function(){
-				//alert(result.name + " " + result.phoneNumber);
+				//navigator.notification.alert(result.name + " " + result.phoneNumber);
 				var nameContact = result.name;
 				var number = result.phoneNumber;
 				var currentName = $('#Accurate').val();
@@ -216,7 +219,7 @@
 		};
 		var failedCallbackPick = function(result){
 			setTimeout(function(){
-				//alert(result);
+				//navigator.notification.alert(result);
 			},500);
 		}
 		if (app) {
@@ -224,8 +227,8 @@
 			window.plugins.contactNumberPicker.pick(successCallbackPick,failedCallbackPick);
 		}
 		else {
-			//alert(nom+' - '+mngid+' - '+tel);
-			$.post("https://ssl14.ovh.net/~taxibleu/server/get_contacts.php", {dep: '34', tel: tel}, function(data) {
+			//navigator.notification.alert(nom+' - '+mngid+' - '+tel);
+			$.post("https://www.mytaxiserver.com/server/get_contacts.php", {dep: '34', tel: tel}, function(data) {
 				$('#contReturn').empty().append(data);
 				$( "#popCont" ).popup( "open", { positionTo: "window" } );
 			});
@@ -238,7 +241,7 @@
 	function login() {
 		var id = $('#login').val();
 		var pwd = $('#pwd').val();
-		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/login_app.php", { id: id, pwd: pwd, kinda: 'pro'}, function(data) {
+		$.post("https://www.mytaxiserver.com/mytaxisrv/login_app.php", { id: id, pwd: pwd, kinda: 'pro'}, function(data) {
 			$.localStorage.setItem('nom', data.nom);
 			$.localStorage.setItem('company', data.nom); // here name = company name
 			$.localStorage.setItem('email', data.email);
@@ -263,7 +266,7 @@
 		tel = $('#subTel').val();
 		email = $('#subMail').val();
 		$("#subReturns").empty();
-		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/register_app.php", { nom: nom, tel: tel, email: email, kinda: 'pro'}, function(data) {
+		$.post("https://www.mytaxiserver.com/mytaxisrv/register_app.php", { nom: nom, tel: tel, email: email, kinda: 'pro'}, function(data) {
 			$.localStorage.setItem('nom', data.nom);
 			$.localStorage.setItem('company', data.nom); // here name = company name
 			$.localStorage.setItem('email', data.email);
@@ -271,7 +274,7 @@
 			$.localStorage.setItem('operator', data.operator);
 			if (data.subscribed === true)
 			{
-				//alert(data.subscribed+' '+data.telexist+' '+data.telvalid+' '+data.emailvalid);
+				//navigator.notification.alert(data.subscribed+' '+data.telexist+' '+data.telvalid+' '+data.emailvalid);
 				$.localStorage.setItem('registeredUser', 1);
 				$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide"} );
 				//display = '<p><b>' + data.civil + ' ' + data.nom + ' ' + data.prenom + ' Voici les informations d&rsquo;identification qui vous permettront d&rsquo;acc&egrave;der &agrave; votre compte :<br><span style="color:#09F;">Identifiant = ' + data.tel + '<br>Mot de passe = ' + data.pwd + '</span><br>Vous les recevrez dans quelques instants &agrave; cet email : <span style="color:#09F;">' + data.email + '</span>, merci.<br></b></p>';
@@ -302,7 +305,7 @@
 		email = $('#accMail').val();
 		pwd = $('#accPwd').val();
 		$("#accReturns").empty();
-		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/modmy_app.php", { nom: nom, tel: tel, newtel: newtel, email: email, pwd: pwd, kinda: 'pro'}, function(data) {
+		$.post("https://www.mytaxiserver.com/mytaxisrv/modmy_app.php", { nom: nom, tel: tel, newtel: newtel, email: email, pwd: pwd, kinda: 'pro'}, function(data) {
 			$.localStorage.setItem('nom', data.nom);
 			$.localStorage.setItem('company', data.nom); // here name = company name
 			$.localStorage.setItem('email', data.email);
@@ -334,7 +337,7 @@
 	function forgottenPwd() {
 		var login = $('#forgotTel').val();
 		var mail = $('#forgotMail').val();
-		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/forget_app.php", { login: login, mail: mail, kinda: 'pro'}, function(data) {
+		$.post("https://www.mytaxiserver.com/mytaxisrv/forget_app.php", { login: login, mail: mail, kinda: 'pro'}, function(data) {
 			var display = '';
 			if (data.sent)
 			{
@@ -369,21 +372,21 @@
 		$('#bookBlock'+n).slideToggle('slow');
 	}
 	function refreshHist() {
-		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
+		$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
 			$.mobile.loading( "show" );
 			$("#hist_cont").empty().append(data);
 		}).done(function() { $.mobile.loading( "hide" ); });
-		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
+		$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
 			$.mobile.loading( "show" );
 			$("#book_cont").empty().append(data);
 		}).done(function() { $.mobile.loading( "hide" ); });
 	}
 	$( '#history' ).live( 'pagecreate',function(event){
-		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
+		$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
 			$.mobile.loading( "show" );
 			$("#hist_cont").empty().append(data);
 		}).done(function() { $.mobile.loading( "hide" ); });
-		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
+		$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
 			$.mobile.loading( "show" );
 			$("#book_cont").empty().append(data);
 		}).done(function() { $.mobile.loading( "hide" ); });
@@ -422,13 +425,13 @@
 		var tarif = $(".rating2").data("val");
 		var vehicule = $(".rating3").data("val");
 		var conduite = $(".rating4").data("val");
-		//alert(rtaxi+' - '+ridcourse+' - '+rdep+' - '+rtel+' - '+accueil+' - '+tarif+' - '+vehicule+' - '+conduite);
-		$.post("https://ssl14.ovh.net/~taxibleu/mytaxisrv/rate.php", { taxi: rtaxi, idcourse: ridcourse, dep: rdep, tel: rtel, accueil: accueil, tarif: tarif, vehicule: vehicule, conduite: conduite, judge: 1}, function(data){ $('#rateBack').empty().append('Vos notes ont &eacute;t&eacute; prise en compte, Merci.');});
+		//navigator.notification.alert(rtaxi+' - '+ridcourse+' - '+rdep+' - '+rtel+' - '+accueil+' - '+tarif+' - '+vehicule+' - '+conduite);
+		$.post("https://www.mytaxiserver.com/mytaxisrv/rate.php", { taxi: rtaxi, idcourse: ridcourse, dep: rdep, tel: rtel, accueil: accueil, tarif: tarif, vehicule: vehicule, conduite: conduite, judge: 1}, function(data){ $('#rateBack').empty().append('Vos notes ont &eacute;t&eacute; prise en compte, Merci.');});
 	}
 	function booking()
 	{
 		dep = $.sessionStorage.getItem('dep');
-		//alert(dep);
+		//navigator.notification.alert(dep);
 		if (isPlaceChanged || (dep != '') || (zip != '')) {
 			var myDate = new Date();
 			idcourse = myDate.getTime();
@@ -509,9 +512,16 @@
 			url = 'taxi=0000&tel=0000000000&idcourse=' + idcourse + '&num_req=' + num_req + '&rdvpoint=' + rdvpoint + '&lat=' + rdvlat + '&lng=' + rdvlng + '&comments=' + comments + '&cell=' + cell + '&when=' + when + '&date=' + date + '&operator=' + operator + '&howmany=' + howMany + '&zip=' + zip + '&dep=34&group=1&ack=0&db=1&prix=20000';
 			url = url.replace(/'/g, "&rsquo;");
 			url = url.replace(/(?:\r\n|\r|\n)/g, '<br/>'); // Replaces line breaks by <br/>
-			$.post("https://ssl14.ovh.net/~taxibleu/server/bookings_app_share.php", url, function(data) {
+			$.post("https://www.mytaxiserver.com/server/bookings_app_share.php", url, function(data) {
 				if(!data.ok) {
-					alert('Vous ne pouvez reserver un taxi que si le RDV est dans plus de 60 minutes !!');
+					//alert('Vous ne pouvez reserver un taxi que si le RDV est dans plus de 60 minutes !!');
+					//Sending as direct job
+					if(data.past) {
+						alert('LA DATE DU RDV EST PASSEE !!');
+					}
+					else {
+						checkZip('#map_page');
+					}
 				}
 				else {
 					$.mobile.pageContainer.pagecontainer("change", "#book_page", { transition: "slide"} );
@@ -519,7 +529,7 @@
 			}, "json");
 		}
 		else {
-			//alert('No Zip Code Here !!');
+			//navigator.notification.alert('No Zip Code Here !!');
 			$( "#setZip" ).popup( "open", { positionTo: "window" } );
 		}
 	}
@@ -567,13 +577,13 @@
 		}
 		var comments = comments1+comments2;
 		url = 'taxi=0000&tel=0000000000&idcourse=' + newId + '&rdvpoint=' + newAdd + '&comments=' + comments + '&cell=' + newCell + '&when=' + newWhen+ '&howmany=' + newHowMany + '&dep=' + newDep+'&db=1';
-		//alert(url);
+		//navigator.notification.alert(url);
 		url = url.replace(/'/g, "&rsquo;");
 		url = url.replace(/(?:\r\n|\r|\n)/g, '<br/>'); // Replaces line breaks by <br/>
-		$.post("https://ssl14.ovh.net/~taxibleu/server/bookings_app_mod.php", url, function(data) {
+		$.post("https://www.mytaxiserver.com/server/bookings_app_mod.php", url, function(data) {
 			//$('#resmod').append(data.req);
 			if(!data.ok) {
-				alert('Vous ne pouvez modifier la reservation !!');
+				navigator.notification.alert('Vous ne pouvez modifier la reservation !!');
 			}
 			else {
 				$.mobile.pageContainer.pagecontainer("change", "#book_page", { transition: "slide"} );
@@ -599,7 +609,7 @@
 		};
 		var autocomplete = new google.maps.places.Autocomplete(input, options);
 		google.maps.event.addListener(autocomplete, 'place_changed', function() {
-			//alert('Fired');
+			//navigator.notification.alert('Fired');
 			isPlaceChanged = true;
 			var place = autocomplete.getPlace();
 			var address = '';
@@ -634,6 +644,14 @@
 				$.mobile.pageContainer.pagecontainer("change", "#connect", { transition: "slide"} );
 			}
 			locateMe();
+			$('#date').datebox({
+				mode: "calbox",
+				afterToday: true
+			});
+			$('#when').datebox({
+				mode: "timebox",
+				overrideTimeOutput: "%k:%M"
+			});
 		}
 		once = true;
         var ok = setInterval( function () {
@@ -665,7 +683,7 @@
             }
 			if(howMany>8) {
 				if(once) {
-					alert('Pour plus de huit personnes veuillez passer une reservation SVP');
+					navigator.notification.alert('Pour plus de huit personnes veuillez passer une reservation SVP');
 					$('#book').slideToggle('slow');
 					$('#date').focus();
 				}
@@ -719,11 +737,11 @@
 					}
 				}
 				else {
-						alert('No results found');
+						navigator.notification.alert('No results found');
 				}
 			}
 			else {
-				alert('Geocoder failed due to: ' + status);
+				navigator.notification.alert('Geocoder failed due to: ' + status);
 			}
 		});
 	}
@@ -807,7 +825,7 @@
 					//self.get('map').setZoom(12);
 					//self.get('map').setCenter(myPlace);
 					self.addMarker({'position': myPlace, 'bounds': true, 'icon': userIcon }).click(function() {
-						self.openInfoWindow({ 'content': address+' / Lieu de prise en charge' }, this);
+						self.openInfoWindow({ 'content': '<p style="color:#333;">'+address+' / Lieu de prise en charge</p>' }, this);
 					});
 					//var gcenter = myPlace.lat().toFixed(4) +", "+ myPlace.lng().toFixed(4);
 					//var circleCenter = new google.maps.LatLng(gcenter);
@@ -822,7 +840,7 @@
 					
 					//searchLocationsNear(myPlace, self);
 				} else {
-					alert(address + ' NON TROUVEE ');
+					navigator.notification.alert(address + ' NON TROUVEE ');
 					$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide", reverse: true} );
 				}
 			});
@@ -843,7 +861,7 @@
 					// THIS ONE IS THE 0000 CAB AND LAST ONE SO...
 					clearInterval(time); // Clears the current Interval
                     //clearTimeout(endcourse);
-					//alert('Aucun taxi ne prend la course !!');
+					//navigator.notification.alert('Aucun taxi ne prend la course !!');
 					//return false;
 				}
 				index++;
@@ -859,9 +877,9 @@
 	////////////////////////////////////////////////////////////
 		
 	$('#fleet_page').live('pagecreate', function() {
-		$('#fleet_map').gmap({'center': mobileMap.center, 'zoom': mobileMap.zoom, 'disableDefaultUI':false, 'mapTypeId': google.maps.MapTypeId.ROADMAP, 'callback': function() {
+		$('#fleet_map').gmap({'center': mobileMap.center, 'zoom': mobileMap.zoom, 'disableDefaultUI':true, 'mapTypeId': google.maps.MapTypeId.ROADMAP, 'callback': function() {
 			var self = this;
-			$.post('https://ssl14.ovh.net/~taxibleu/server34/station_fleet_xml.php?group=1', function(xml){
+			$.post('https://www.mytaxiserver.com/appserver/station_fleet_xml.php?group=1&dep=34', function(xml){
 				$(xml).find('marker').each(function(){
 					var name = $(this).attr('name');
 					var address = $(this).attr('address');
@@ -869,16 +887,15 @@
 					var lng = $(this).attr('lng');
 					var timestamp = $(this).attr('timestamp');
 					i = $(this).attr('count');
-					$('.cabNum').empty().append('Il y a actuellement '+i+' Taxis disponibles.');
 					var latlng = new google.maps.LatLng(lat, lng);			
 					var display_name = 'Taxi ' + name;
 					var cabIcon = 'visuels/cab_marker.png';
-					self.addMarker({ id: i ,'position': latlng, 'bounds': false, 'title': display_name, 'icon': cabIcon }).click(function() {
+					self.addMarker({ id: i ,'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
 						infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + name + ' - ' + address+ '</b></p>';
 						self.openInfoWindow({ 'content':  infoCont}, this);
 					});
-					//sefl.addBounds(latlng);
 				});
+				$('.cabNum').empty().append('Il y a actuellement '+i+' Taxis disponibles.');
 			});
 		}});
 	});
@@ -939,10 +956,10 @@
 						'clickable': true 
 					});
 				} else {
-					alert('ADRESSE RDV : '+address+' NON TROUVEE ');
+					navigator.notification.alert('ADRESSE RDV : '+address+' NON TROUVEE ');
 				}
 			});
-			$.post('https://ssl14.ovh.net/~taxibleu/appserver/follow.php', { taxi: ftaxi, idcourse: fidcourse, dep: fdep, tel: ftel, table: ftable }, function(data){
+			$.post('https://www.mytaxiserver.com/appserver/follow.php', { taxi: ftaxi, idcourse: fidcourse, dep: fdep, tel: ftel, table: ftable }, function(data){
 				if(data.ok) {
 					var latlng = new google.maps.LatLng(data.lat, data.lng);
 					var display_name = 'Taxi ' + data.name;
@@ -953,12 +970,12 @@
 					});
 				}
 				else {
-					alert('Vous ne pouvez suivre un taxi que 30 minutes avant le RDV !!');
+					navigator.notification.alert('Vous ne pouvez suivre un taxi que 30 minutes avant le RDV !!');
 					document.location.href='index.html';
 				}
 			}, "json");
 			var track = setInterval( function () {
-				$.post('https://ssl14.ovh.net/~taxibleu/appserver/follow.php', { taxi: ftaxi, idcourse: fidcourse, dep: fdep, tel: ftel, table: ftable }, function(data){
+				$.post('https://www.mytaxiserver.com/appserver/follow.php', { taxi: ftaxi, idcourse: fidcourse, dep: fdep, tel: ftel, table: ftable }, function(data){
 					var markerCab = self.get('markers')['cab'];
 					markerCab.setVisible(false);
 					var latlng = new google.maps.LatLng(data.lat, data.lng);
@@ -990,7 +1007,7 @@
 	
 	function searchLocationsNear(center, mapEvent) {
 		//clearLocations();
-		//alert('In searchLocationsNear');
+		//navigator.notification.alert('In searchLocationsNear');
 		$('#map').gmap('refresh');
 		var myDate = new Date();
 		idcourse = myDate.getTime();
@@ -1069,9 +1086,9 @@
 		url = '';
 		num_req = idcourse;
 		i = 0; // We need to make any numreq unique on that one !!
-		//$.post("https://ssl14.ovh.net/~taxibleu/server/app_dcvp_xml.php", { lat: rdvlat, lng: rdvlng, type: typecar, howmany: howMany, cb: cb, group: '1', dep: '', pass: 'true'}, function(xml){
-		$.post('https://ssl14.ovh.net/~taxibleu/server/app_dcvp_xml.php', {lat: rdvlat, lng: rdvlng, type: typecar, howmany: howMany, cb: cb, group: group, dep: '34', zip: zip, pass: 'true'}, function(xml){
-			//alert('IN');
+		//$.post("https://www.mytaxiserver.com/server/app_dcvp_xml.php", { lat: rdvlat, lng: rdvlng, type: typecar, howmany: howMany, cb: cb, group: '1', dep: '', pass: 'true'}, function(xml){
+		$.post('https://www.mytaxiserver.com/server/app_dcvp_xml.php', {lat: rdvlat, lng: rdvlng, type: typecar, howmany: howMany, cb: cb, group: group, dep: '34', zip: zip, pass: 'true'}, function(xml){
+			//navigator.notification.alert('IN');
 			$(xml).find('marker').each(function(){
 				var name = $(this).attr('name');
 				var address = $(this).attr('address');
@@ -1085,14 +1102,14 @@
 				var display_name = 'Taxi ' + name;
 				var cabIcon = 'visuels/cab_marker.png';
 				mapEvent.addMarker({ id: i ,'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
-					infoCont = "<b>Le taxi n&deg; " + name + " est &agrave; " + parseFloat(distance).toFixed(1) + " Km de vous</b><br>" + address;
+					infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + name + ' est &agrave; ' + parseFloat(distance).toFixed(1) + ' Km de vous tel: ' + address+ '</b></p>';
 					mapEvent.openInfoWindow({ 'content':  infoCont}, this);
 				});
 				//mapEvent.addBounds(latlng);
 				url = 'taxi=' + name + '&tel=' + address + '&idcourse=' + idcourse + '&num_req=' + num_req + '&rdvpoint=' + rdvpoint + '&lat=' + rdvlat + '&lng=' + rdvlng + '&comments=' + comments + '&cell=' + cell + '&when=' + when + '&date=' + date + '&operator=' + operator + '&dep=34&group=1&ack=0&db=1&prix=20000';
 				url = url.replace(/'/g, "&rsquo;");
 				url = url.replace(/(?:\r\n|\r|\n)/g, '<br/>'); // Replaces line breaks by <br/>
-				//$.post("https://ssl14.ovh.net/~taxibleu/server/diary_app_share.php", url, function(data) {});
+				//$.post("https://www.mytaxiserver.com/server/diary_app_share.php", url, function(data) {});
 				$('#dblinks').append($('<input class="cabs" id="' + i + '" type="hidden" onclick="sendJob(\''+ url +'\')" />'));
 			});
 			num_req = num_req+1;
@@ -1102,7 +1119,7 @@
 			url = url.replace(/(?:\r\n|\r|\n)/g, '<br/>'); // Replaces line breaks by <br/>
 			// Sends Auction Request to TaxiMedia Server
 			$('#dblinks').append($('<input class="cabs" id="' + i + '" type="hidden" onclick="sendJob(\''+ url +'\')" />'));
-			//$.post("https://ssl14.ovh.net/~taxibleu/server/diary_app_share.php", url, function(data) {});
+			//$.post("https://www.mytaxiserver.com/server/diary_app_share.php", url, function(data) {});
 		}, "xml");
 		$.mobile.loading( "hide" );
 		$('#dblinks').append($('<input id="stop" type="hidden" value="0" />'));
@@ -1120,21 +1137,21 @@
 	
     function sendJob(url)
     {	
-		$.post("https://ssl14.ovh.net/~taxibleu/server/diary_app_share.php", url, function(data) {});
+		$.post("https://www.mytaxiserver.com/server/diary_app_share.php", url, function(data) {});
     }
 	
     function check_answer()
     {
-		$.post("https://ssl14.ovh.net/~taxibleu/server34/status.php?idcourse=" + idcourse + "&check=1" , {}, function(data){ 
+		$.post("https://www.mytaxiserver.com/server34/status.php?idcourse=" + idcourse + "&check=1" , {}, function(data){ 
 			if (data != 0)
 			{
 				clearInterval(time);
 				clearTimeout(endcourse);
 				cancel(idcourse);
 				document.getElementById('stop').value = 1;
-				//var box = alert(data);
+				//var box = navigator.notification.alert(data);
 				//stopCall();
-				//var box = alert(data);
+				//var box = navigator.notification.alert(data);
 				//$('#thanksResults').empty().append(data);
 				$('#answer').empty().append(data);
 				$( "#answerBox" ).popup( "open", { positionTo: "window" } );
@@ -1149,13 +1166,14 @@
 				*/
 				//return false;
 			}
+		}).done(function(data) {
+			setTimeout('check_answer()', 2000);
 		});
-		setTimeout('check_answer()', 1000);
     }
     function cancel(idcourse)
     {
-		//alert(idcourse);
-        $.post("https://ssl14.ovh.net/~taxibleu/server34/diary.php?idcourse=" + idcourse + "&ack=1&db=1&cab_wont=1&del=1"); 
+		//navigator.notification.alert(idcourse);
+        $.post("https://www.mytaxiserver.com/server34/diary.php?idcourse=" + idcourse + "&ack=1&db=1&cab_wont=1&del=1"); 
     }        
 	function stopCall()
 	{
@@ -1269,15 +1287,15 @@
                 <div id="book">
                     <p id="datelabel"><b>Date et heure du RDV si r&eacute;servation :</b></p>
                     <span style="display:inline-block;width: 48%;">
-                        <input type="date" id="date" data-role="date" placeholder="jj/mm/aaaa" data-clear-btn="true" data-inline="true" value=""/>
+                        <input type="date" id="date" placeholder="jj/mm/aaaa" data-inline="true" value=""/>
                     </span>
                     <span style="display:inline-block;width: 48%;">
-                        <input type="time" id="when" placeholder="hh:mm" data-clear-btn="true" data-inline="true" value=""/>
+                        <input type="time" id="when" placeholder="hh:mm" data-inline="true" value=""/>
                     </span>
                 </div>
                 <input type="hidden" id="radiusSelect" value="100" />
                 <p>&nbsp;</p>
-                <div id="next-box"><input type="button" id="next" data-theme="a" value="Suivant"/></div>
+                <div id="next-box"><button id="next" class="ui-btn ui-btn-a ui-shadow ui-corner-all ui-btn-icon-left ui-icon-next">* Champs obligatoires</button></div>
                 <div id="search-box"><button onClick="checkZip('#map_page')" class="ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-search" id="search">Commander un taxi</button></div>
                 <div id="book-box"><button onClick="booking()" class="ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-clock" id="booking">R&eacute;server un taxi</button></div>
                 <div data-role="popup" data-theme="a" id="errorPop" data-dismissible="true">
@@ -1322,44 +1340,41 @@
         </div>
     </div>
     <div data-role="page" data-theme="b" id="map_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
-        <div class="ui-content" role="main">
-            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
-                
-                <center>
-                <div id="deliv-hide" style="width: 0px; height: 0px; visibility:hidden;">
-                	<input type="button" onClick="" id="deliver" value="" />
-                </div>
-                <div class="ui-bar-a ui-corner-all ui-shadow" style="padding:1em; margin-bottom: 6px;"><p><b>Veuillez patienter pendant la recherche SVP</b></p></div>
-                </center>
-                <div id="map" style="height:360px;"></div>
-                <div id="left" style="width: 0px; height: 0px; visibility:hidden;">
-                    <div id="dblinks">
-                    </div>
-                </div>
-                <input type="button" class="cancel" id="cancel" onClick="stopCall()" value=" Retour / Annulation " />
-                <div id="test"></div>
-                <div data-role="popup" data-theme="a" id="answerBox" data-dismissible="false" data-position-to="window">
-                    <div data-theme="a" data-role="header">
-                        <h1>
-                            Confirmation
-                        </h1>
-                    </div>
-                    <div class="ui-content" role="main">
-                        <div id="answer"></div>
-                        <input type="button" value="OK" onClick="goback('index.html')"/>
-                    </div>
-                </div>
-                <div data-role="popup" data-theme="a" id="backPop" data-dismissible="false">
-                    <div data-theme="a" data-role="header">
-                        <h1>
-                            Hors d&eacute;lai
-                        </h1>
-                    </div>
-                    <div class="ui-content" role="main">
-                        <p><strong>Aucun taxis n&rsquo;a r&eacute;pondu, vous devriez rechercher de nouveau.</strong></p>
-                    </div>
-                </div>
-            </div>
+        <div data-role="header" data-position="fixed" data-fullscreen="true">
+			<h1>Veuillez patienter pendant la recherche SVP</h1>
+			<div id="deliv-hide" style="width: 0px; height: 0px; visibility:hidden;">
+				<input type="button" onClick="" id="deliver" value="" />
+			</div>
+			<div id="left" style="width: 0px; height: 0px; visibility:hidden;">
+				<div id="dblinks">
+				</div>
+			</div>
+        </div>
+        <div class="ui-content" role="main" id="map">
+			<div data-role="popup" data-theme="b" id="answerBox" data-dismissible="false" data-position-to="window">
+				<div data-theme="b" data-role="header">
+					<h1>
+						Confirmation
+					</h1>
+				</div>
+				<div class="ui-content" role="main">
+					<div id="answer"></div>
+					<input type="button" value="OK" onClick="goback('index.html')"/>
+				</div>
+			</div>
+			<div data-role="popup" data-theme="b" id="backPop" data-dismissible="false">
+				<div data-theme="b" data-role="header">
+					<h1>
+						Hors d&eacute;lai
+					</h1>
+				</div>
+				<div class="ui-content" role="main">
+					<p><strong>Aucun taxis n&rsquo;a r&eacute;pondu, vous devriez rechercher de nouveau.</strong></p>
+				</div>
+			</div>
+        </div>
+        <div data-role="footer" id="footer_map" data-position="fixed" data-fullscreen="true">
+			<button type="button" class="cancel ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-delete" id="cancel" onClick="stopCall()" value=""> Retour / Annulation </button>
         </div>
     </div>
     <div data-role="page" data-theme="b" style="background: #000 url(visuels/bg.png) top left repeat-x;" id="connect">
@@ -1428,7 +1443,7 @@
                 <p style="font-size:16px"><b>Historique des courses</b></p>
                 </center>
                 <div class="responsive">
-                    <div class="ui-block-a"><div class="ui-body ui-body-a"><p>Courses prises</p><div id="hist_cont"></div></div></div>
+                    <div class="ui-block-a"><div class="ui-body ui-body-a"><p>Courses directes</p><div id="hist_cont"></div></div></div>
                     <div class="ui-block-b"><div class="ui-body ui-body-b"><p>R&eacute;servations</p><div id="book_cont"></div></div></div>
                 </div>
             </div>
@@ -1446,28 +1461,24 @@
         </div>
     </div>
     <div data-role="page" data-theme="b" id="fleet_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
-        <div data-role="header">
-            <a href="#homepanel" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-arrow-l"><p style="font-size:16px"><b>Menu</b></p></a>
+        <div data-role="header" data-position="fixed" data-fullscreen="true">
+            <button onClick="goback('index.html')" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-power"><p style="font-size:16px"><b>Retour</b></p></button>
         </div>
-        <div class="ui-content" role="main">
-            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
-            	<div class="spacer"></div>
-                <div id="fleet_map" style="height:460px;"></div>
-            	<div class="spacer"></div>
+        <div class="ui-content" id="fleet_map" role="main">
+        </div>
+        <div data-role="footer" id="footer_map" data-position="fixed" data-fullscreen="true">
+            <center>
                 <span class="cabNum" style="font-size:24px; color:#FC0;"></span>
-            </div>
+            </center>
         </div>
     </div>
     <div data-role="page" data-theme="b" id="follow" style="background: #000 url(visuels/bg.png) top left repeat-x;">
-        <div data-role="header">
+        <div data-role="header" data-position="fixed" data-fullscreen="true">
             <button onClick="goback('index.html')" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-power"><p style="font-size:16px"><b>Arr&ecirc;ter</b></p></button>
         </div>
-        <div class="ui-content" role="main">
-            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
-            	<div class="spacer"></div>
-                <div id="follow_map" style="height:460px;"></div>
-            	<div class="spacer"></div>
-            </div>
+        <div class="ui-content" id="follow_map" role="main">
+        </div>
+        <div data-role="footer" id="footer_map" data-position="fixed" data-fullscreen="true">
             <center><p><strong>
             	Vous ne pouvez suivre un taxi que 30 minutes avant le RDV.<br>
                 Les positions sont actualis&eacute;es toutes les 30 secondes.
