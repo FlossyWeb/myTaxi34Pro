@@ -372,24 +372,24 @@
 		$('#bookBlock'+n).slideToggle('slow');
 	}
 	function refreshHist() {
+		$.mobile.loading( "show" );
 		$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
-			$.mobile.loading( "show" );
 			$("#hist_cont").empty().append(data);
-		}).done(function() { $.mobile.loading( "hide" ); });
-		$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
-			$.mobile.loading( "show" );
-			$("#book_cont").empty().append(data);
-		}).done(function() { $.mobile.loading( "hide" ); });
+		}).done(function() { 
+			$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
+				$("#book_cont").empty().append(data);
+			}).done(function() { $.mobile.loading( "hide" ); });
+		});
 	}
 	$( '#history' ).live( 'pagecreate',function(event){
+		$.mobile.loading( "show" );
 		$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
-			$.mobile.loading( "show" );
 			$("#hist_cont").empty().append(data);
-		}).done(function() { $.mobile.loading( "hide" ); });
-		$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
-			$.mobile.loading( "show" );
-			$("#book_cont").empty().append(data);
-		}).done(function() { $.mobile.loading( "hide" ); });
+		}).done(function() { 
+			$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
+				$("#book_cont").empty().append(data);
+			}).done(function() { $.mobile.loading( "hide" ); });
+		});
 	});
 	function rateCab(rtaxi, ridcourse, rdep, rtel)
 	{
@@ -971,7 +971,8 @@
 				}
 				else {
 					navigator.notification.alert('Vous ne pouvez suivre un taxi que 30 minutes avant le RDV !!');
-					document.location.href='index.html';
+					//document.location.href='index.html';
+					$.mobile.pageContainer.pagecontainer("change", "#history", { transition: "slide"} );
 				}
 			}, "json");
 			var track = setInterval( function () {
@@ -1340,16 +1341,6 @@
         </div>
     </div>
     <div data-role="page" data-theme="b" id="map_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
-        <div data-role="header" data-position="fixed" data-fullscreen="true">
-			<h1>Veuillez patienter pendant la recherche SVP</h1>
-			<div id="deliv-hide" style="width: 0px; height: 0px; visibility:hidden;">
-				<input type="button" onClick="" id="deliver" value="" />
-			</div>
-			<div id="left" style="width: 0px; height: 0px; visibility:hidden;">
-				<div id="dblinks">
-				</div>
-			</div>
-        </div>
         <div class="ui-content" role="main" id="map">
 			<div data-role="popup" data-theme="b" id="answerBox" data-dismissible="false" data-position-to="window">
 				<div data-theme="b" data-role="header">
@@ -1365,16 +1356,27 @@
 			<div data-role="popup" data-theme="b" id="backPop" data-dismissible="false">
 				<div data-theme="b" data-role="header">
 					<h1>
-						Hors d&eacute;lai
+						Annulation
 					</h1>
 				</div>
 				<div class="ui-content" role="main">
-					<p><strong>Aucun taxis n&rsquo;a r&eacute;pondu, vous devriez rechercher de nouveau.</strong></p>
+					<p><strong>
+						Vous avez annul&eacute; votre demande ou 
+						aucun taxis n&rsquo;a r&eacute;pondu dans le temps imparti, vous devriez rechercher de nouveau.
+					</strong></p>
 				</div>
 			</div>
         </div>
         <div data-role="footer" id="footer_map" data-position="fixed" data-fullscreen="true">
-			<button type="button" class="cancel ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-delete" id="cancel" onClick="stopCall()" value=""> Retour / Annulation </button>
+			<div id="deliv-hide" style="width: 0px; height: 0px; visibility:hidden;">
+				<input type="button" onClick="" id="deliver" value="" />
+			</div>
+			<div id="left" style="width: 0px; height: 0px; visibility:hidden;">
+				<div id="dblinks">
+				</div>
+			</div>
+			<p><strong>Veuillez patienter pendant la recherche SVP
+			<button type="button" class="cancel ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-delete" id="cancel" onClick="stopCall()" value=""> Retour / Annulation </button></strong></p>
         </div>
     </div>
     <div data-role="page" data-theme="b" style="background: #000 url(visuels/bg.png) top left repeat-x;" id="connect">
