@@ -27,7 +27,7 @@
 	<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
     <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 	<script type="text/javascript">
-        $( document ).bind( "mobileinit", function() {
+        $( document ).on( "mobileinit", function() {
             // Make your jQuery Mobile framework configuration changes here!
             $.support.cors = true;
             $.mobile.allowCrossDomainPages = true;
@@ -57,7 +57,7 @@
     var markers = [];
     var infoWindow;
     var locationSelect;
-	var idcourse;
+	var idcourse = '';
 	var zip = '';
 	var time;
 	var endcourse; // Clears the timeout
@@ -94,7 +94,8 @@
 		// PhoneGap est prêt
 		function onDeviceReady() {
 			document.addEventListener("backbutton", onBackKeyDown, false);
-			document.addEventListener("menubutton", onMenuKeyDown, false);
+			document.addEventListener("resume", onResume, false);
+			//document.addEventListener("menubutton", onMenuKeyDown, false);
 			StatusBar.overlaysWebView(false);
 			if($.localStorage.getItem('registeredUser') != 1)
 			{
@@ -115,13 +116,22 @@
 			//changePage('#infos');
 			navigator.notification.alert('Veuillez ne pas quitter myTaxi pendant la recheche de taxi disponibles');
 		}
-		// Bouton menu
-		function onMenuKeyDown() {
-			//changePage('#infos');
+		function onResume() {
+			if((navigator.network.connection.type == Connection.NONE) || !window.jQuery){
+				$("body").empty().append('<img src="no_network.png" width="'+screen.width+'" height="'+screen.height+'" onClick="window.location.reload()" />');
+			}
 		}
+		// Bouton menu
+		//function onMenuKeyDown() {}
 	}
 	else {
 		app = false;
+		$(window).on('beforeunload', function(e) {
+			if(idcourse!='') {
+				stopCall();
+				return "SI VOUS AVIEZ UNE COMMANDE EN COURS ELLE EST ANNULEE ! (CELA NE S'APPLIQUE PAS AUX RESERVATIONS)";
+			}
+		});
 	}
 	var scanSuccess = function (result) {
 		var textFormats = "QR_CODE DATA_MATRIX";
@@ -368,7 +378,7 @@
 			$("#fogotReturns").empty().append(display);
 		}, "json");
 	}
-	$(document).bind( 'pagecreate', function() {
+	$(document).on( 'pagecreate', function() {
 		$( "body>[data-role='panel']" ).panel().enhanceWithin();
 	});
 	$( '#connect' ).live( 'pagecreate',function(event){
@@ -604,7 +614,8 @@
 		$.post("https://www.mytaxiserver.com/server/bookings_app_mod.php", url, function(data) {
 			//$('#resmod').append(data.req);
 			if(!data.ok) {
-				navigator.notification.alert('Vous ne pouvez modifier la reservation !!');
+				if(app) navigator.notification.alert('Vous ne pouvez modifier la reservation !!');
+				else alert('Vous ne pouvez modifier la reservation !!');
 			}
 			else {
 				$.mobile.pageContainer.pagecontainer("change", "#book_page", { transition: "slide"} );
@@ -665,6 +676,9 @@
 				$.mobile.pageContainer.pagecontainer("change", "#connect", { transition: "slide"} );
 			}
 			locateMe();
+			$('.noAppHide').each(function () {
+				$(this).hide();
+			})
 			$('#date').datebox({
 				mode: "calbox",
 				afterToday: true
@@ -704,7 +718,8 @@
             }
 			if(howMany>8) {
 				if(once) {
-					navigator.notification.alert('Pour plus de huit personnes veuillez passer une reservation SVP');
+					if(app) navigator.notification.alert('Pour plus de huit personnes veuillez passer une reservation SVP');
+					else alert('Pour plus de huit personnes veuillez passer une reservation SVP');
 					$('#book').slideToggle('slow');
 					$('#date').focus();
 				}
@@ -864,7 +879,8 @@
 					
 					//searchLocationsNear(myPlace, self);
 				} else {
-					navigator.notification.alert(address + ' NON TROUVEE ');
+					if(app) navigator.notification.alert(address + ' NON TROUVEE ');
+					else alert(address + ' NON TROUVEE ');
 					$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide", reverse: true} );
 				}
 			});
@@ -980,7 +996,8 @@
 						'clickable': true 
 					});
 				} else {
-					navigator.notification.alert('ADRESSE RDV : '+address+' NON TROUVEE ');
+					if(app) navigator.notification.alert('ADRESSE RDV : '+address+' NON TROUVEE ');
+					else alert('ADRESSE RDV : '+address+' NON TROUVEE ');
 				}
 			});
 			$.post('https://www.mytaxiserver.com/appserver/follow.php', { taxi: ftaxi, idcourse: fidcourse, dep: fdep, tel: ftel, table: ftable }, function(data){
@@ -994,7 +1011,8 @@
 					});
 				}
 				else {
-					navigator.notification.alert('Vous ne pouvez suivre un taxi que 30 minutes avant le RDV !!');
+					if(app) navigator.notification.alert('Vous ne pouvez suivre un taxi que 30 minutes avant le RDV !!');
+					else alert('Vous ne pouvez suivre un taxi que 30 minutes avant le RDV !!');
 					//document.location.href='index.html';
 					$.mobile.pageContainer.pagecontainer("change", "#history", { transition: "slide"} );
 				}
@@ -1220,6 +1238,7 @@
 		clearInterval(time);
 		clearTimeout(endcourse);
 		$('#map').gmap('destroy');
+		$('#follow_map').gmap('destroy');
         //document.location.href=flag;
 		$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide"} );
     }        
@@ -1242,8 +1261,8 @@
           <li><a href="#history" class="ui-btn ui-btn-icon-left ui-icon-bars">Historique</a></li>
           <li><a href="#account" class="ui-btn ui-btn-icon-left ui-icon-user">Mon compte</a></li>
           <li><a href="#fleet_page" class="ui-btn ui-btn-icon-left ui-icon-eye">Taxis disponibles</a></li>
-          <li><a href="#" onClick="Share()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-mail"><b>Partager l&rsquo;app</b></a></li>
-          <li><a href="#" onClick="goScan()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-camera"><b>Scanner un code</b></a></li>
+          <li><a href="#" onClick="Share()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-mail noAppHide"><b>Partager l&rsquo;app</b></a></li>
+          <li><a href="#" onClick="goScan()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-camera noAppHide"><b>Scanner un code</b></a></li>
         </ul>
         <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-power" onClick="dc()">D&eacute;connexion</button>
     </div><!-- /panel -->
@@ -1399,7 +1418,7 @@
 				<div id="dblinks">
 				</div>
 			</div>
-			<p><strong>Veuillez patienter pendant la recherche SVP
+			<p><strong>Veuillez patienter pendant la recherche et ne pas quitter l&rsquo;app SVP
 			<button type="button" class="cancel ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-delete" id="cancel" onClick="stopCall()" value=""> Retour / Annulation </button></strong></p>
         </div>
     </div>
