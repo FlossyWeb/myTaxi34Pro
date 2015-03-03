@@ -1237,10 +1237,11 @@
 		$('#dblinks').empty();	 
 		clearInterval(time);
 		clearTimeout(endcourse);
-		$('#map').gmap('destroy');
-		$('#follow_map').gmap('destroy');
-        //document.location.href=flag;
-		$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide"} );
+		idcourse=''; // reset idcourse
+		//$('#map').gmap('destroy');
+		//$('#follow_map').gmap('destroy');
+        document.location.href=flag;
+		//$.mobile.pageContainer.pagecontainer("change", "#infos", { transition: "slide"} );
     }        
     function processMap()
     {
