@@ -3,7 +3,7 @@
     <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta http-equiv="CONTENT-LANGUAGE" content="French">
-    <title>My Taxi 34 Pro by Taxi Global Services</title>
+    <title>MonTaxi 34 Pro by Taxi Global Services</title>
     <link rel="apple-touch-icon" href="visuels/idev.favicon.png"/>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1"/>
     <!-- <meta name="viewport" content="width=device-width, height=device-height, user-scalable=yes, initial-scale=1"/> -->
@@ -101,6 +101,16 @@
 			{
 				$.mobile.pageContainer.pagecontainer("change", "#connect", { transition: "slide"} );
 			}
+			else {
+				$.post("https://www.mytaxiserver.com/taxioffsrv/blacklist.php", { userid: operator}, function(data) {
+					if (data.banned == 1)
+					{
+						$.mobile.pageContainer.pagecontainer("change", "#subscription", { transition: "slide"} );
+						var displayThis = '<p style="color:red;"><b>Votre compte &agrave; &eacute;t&eacute; banni pour cause d&rsquo;utilisation abusive, d&eacute;sol&eacute;.<br>Vous pouvez nous contacter pour toute r&eacute;clamation: </b></p><center><a href="mailto:info@taximedia.fr" class="ui-btn ui-btn-icon-left ui-icon-mail ui-btn-inline">Courriel</a><a href="tel:0413598022" class="ui-btn ui-btn-icon-left ui-icon-phone ui-btn-inline">T&eacute;l&eacute;phone</a></center>';
+						$("#subReturns").empty().append(displayThis);
+					}
+				}, "json");
+			}
 			if((navigator.network.connection.type == Connection.NONE) || !window.jQuery){
 				$("body").empty().append('<img src="no_network.png" width="'+screen.width+'" height="'+screen.height+'" onClick="window.location.reload()" />');
 			}
@@ -114,7 +124,7 @@
 		function onBackKeyDown() {
 			//history.back();
 			//changePage('#infos');
-			navigator.notification.alert('Veuillez ne pas quitter myTaxi pendant la recheche de taxi disponibles');
+			navigator.notification.alert('Veuillez ne pas quitter monTaxi pendant la recheche de taxi disponibles');
 		}
 		function onResume() {
 			if((navigator.network.connection.type == Connection.NONE) || !window.jQuery){
@@ -186,7 +196,7 @@
 			setTimeout(function(){
 				//navigator.notification.alert(result.name + " " + result.phoneNumber);
 				var number = result.phoneNumber;
-				var message = "Téléchargez l'app myTaxi 34 en suivant ce lien : http://www.taximedia.fr/stores.php?app=mytaxi&dep=34";
+				var message = "Téléchargez l'app monTaxi 34 en suivant ce lien : http://www.taximedia.fr/stores.php?app=mytaxi&dep=34";
 				var intent = ""; //leave empty for sending sms using default intent
 				var success = function () {
 					//navigator.notification.alert('Message sent successfully');
@@ -674,6 +684,16 @@
 			if($.localStorage.getItem('registeredUser') != 1)
 			{
 				$.mobile.pageContainer.pagecontainer("change", "#connect", { transition: "slide"} );
+			}
+			else {
+				$.post("https://www.mytaxiserver.com/taxioffsrv/blacklist.php", { userid: operator}, function(data) {
+					if (data.banned == 1)
+					{
+						$.mobile.pageContainer.pagecontainer("change", "#subscription", { transition: "slide"} );
+						var displayThis = '<p style="color:red;"><b>Votre compte &agrave; &eacute;t&eacute; banni pour cause d&rsquo;utilisation abusive, d&eacute;sol&eacute;.<br>Vous pouvez nous contacter pour toute r&eacute;clamation: </b></p><center><a href="mailto:info@taximedia.fr" class="ui-btn ui-btn-icon-left ui-icon-mail ui-btn-inline">Courriel</a><a href="tel:0413598022" class="ui-btn ui-btn-icon-left ui-icon-phone ui-btn-inline">T&eacute;l&eacute;phone</a></center>';
+						$("#subReturns").empty().append(displayThis);
+					}
+				}, "json");
 			}
 			locateMe();
 			$('.noAppHide').each(function () {
@@ -1500,7 +1520,7 @@
             <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
             	<center>
                 <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
-                <p><b><br><br>Votre demande a &eacute;t&eacute; prise en compte, votre taxi prendra contact avec vous par t&eacute;l&eacute;phone ou sms.<br><br>Toute l&rsquo;&eacute;quipe myTaxi 34 vous remercie.</b></p>
+                <p><b><br><br>Votre demande a &eacute;t&eacute; prise en compte, votre taxi prendra contact avec vous par t&eacute;l&eacute;phone ou sms.<br><br>Toute l&rsquo;&eacute;quipe monTaxi 34 vous remercie.</b></p>
                 <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-edit" onClick="goback('index.html')">Retour</button>
                 </center>
             </div>
