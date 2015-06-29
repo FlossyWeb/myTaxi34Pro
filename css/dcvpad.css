@@ -1,10 +1,42 @@
 body {
 	margin: 0px;
 	padding: 0px;
-	background: #000 url(../visuels/bg.png) top left repeat-x;
+	background: url(../visuels/bg_HD.jpg) no-repeat center fixed; 
+	background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	-webkit-background-size: cover;
 }
-.ui-overlay-b, .ui-page-theme-b, .ui-page-theme-b .ui-panel-wrapper, .ui-page-theme-b .ui-body-inherit {
-	background: #000 url(../visuels/bg.png) top left repeat-x;
+.ui-panel {
+	background: #333;
+	background-image: linear-gradient(to bottom, #333, #000);
+}
+.transpcont, .ui-page-theme-c .ui-body-inherit {
+    background: #333;
+	background-color: rgba(60,60,60,0.6);
+}
+.ui-overlay-c, .ui-page-theme-c, .ui-page-theme-c .ui-panel-wrapper, .header {
+	background: url(../visuels/bg_HD.jpg) no-repeat center fixed;
+	background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	-webkit-background-size: cover;
+}
+@media all and (orientation: landscape) { 
+	body {
+		background: url(../visuels/bg_land_HD.jpg) no-repeat center fixed; 
+		background-size: cover;
+		-moz-background-size: cover;
+		-o-background-size: cover;
+		-webkit-background-size: cover;
+	}
+	.ui-overlay-c, .ui-page-theme-c, .ui-page-theme-c .ui-panel-wrapper, .header {
+		background: url(../visuels/bg_land_HD.jpg) no-repeat center fixed; 
+		background-size: cover;
+		-moz-background-size: cover;
+		-o-background-size: cover;
+		-webkit-background-size: cover;
+	}
 }
 #search-box, #book-box {
 	display: none;
@@ -30,6 +62,22 @@ ul, li {
 	clear: both;
 	height: 6px;
 	overflow: hidden;
+}
+.rounded {
+	-moz-border-radius: 6px;
+	border-radius: 6px;	
+}
+.rounded16 {
+	-moz-border-radius: 16px;
+	border-radius: 16px;
+}
+.shadow {
+	box-shadow: 0 0 6px #000;
+	-moz-box-shadow: 0 0 6px #000; 
+	-webkit-box-shadow: 0 0 6px #000;
+}
+.cursor {
+	cursor: pointer;
 }
 #left {
 	color: #FFF;
@@ -82,15 +130,22 @@ ul, li {
     width: 100%;
     float: none;
 }
+/* Stack all blocks to start */
+.responsive .ui-block-b{
+	display: none;
+}
 /* Collapsing borders */
 .responsive > div + div .ui-body {
     border-top-width: 0;
 }
 /* 1st breakpoint - Float A and B, leave A full width on top */
-@media all and (min-width: 32em) {
+@media all and (min-width: 1024px) {
     .responsive {
         overflow: hidden; /* Use this or a "clearfix" to give the container height */
     }
+	.responsive .ui-block-b{
+		display: inline-block;
+	}
     .responsive .ui-body {
        min-height: 14em;
     }
@@ -118,7 +173,7 @@ ul.popers a {
 	color: #FC0;
 	cursor: pointer;
 }
-#details, #book, #histBlock {
+#details, #book {
 	display: none;
 }
 .back {
@@ -131,25 +186,27 @@ em {
 	color: #F00;
 }
 ::-webkit-input-placeholder {
-   color: #333;
+   color: #A6A6A6;
 }
 
 :-moz-placeholder { /* Firefox 18- */
-   color: #333;
+   color: #A6A6A6;
    opacity:  1;
 }
 
 ::-moz-placeholder {  /* Firefox 19+ */
-   color: #333;
+   color: #A6A6A6;
    opacity:  1;
 }
 
 :-ms-input-placeholder {  
-   color: #333;
-   opacity:  1;
+   color: #A6A6A6;
 }
 input[type=text], input[type=tel], input[type=date], input[type=time] {
-	color: #000;
+	color: #FFF;
+}
+.ui-datebox-container input[type=text] {
+	color: #333;
 }
 /* star rating ---------------------------- */
 .rating, .rating2, .rating3, .rating4 { float: right; }

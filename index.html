@@ -21,7 +21,9 @@
             media="(device-width: 320px) and (device-height: 568px)
             and (-webkit-device-pixel-ratio: 2)"
             href="visuels/startup_image_i5.png">
-    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile.structure-1.4.5.min.css" />
+	<link rel="stylesheet" href="css/themes/monTaxiPart.min.css" />
+	<link rel="stylesheet" href="css/themes/jquery.mobile.icons.min.css" />
     <link type="text/css" rel="stylesheet" href="css/dcvpad.css" />
     <link type="text/css" rel="stylesheet" href="css/jqm-datebox-1.4.5.min.css" />
 	<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
@@ -36,7 +38,7 @@
 			$.mobile.loader.prototype.options.text = "Veuillez patienter pendant la recherche de taxi disponible. Merci de votre confiance !";
 			$.mobile.loader.prototype.options.textVisible = "true";
 			$.mobile.loader.prototype.options.theme = "a";
-			$.mobile.loader.prototype.options.html = '<span class="ui-bar ui-overlay-c ui-corner-all"><center><img src="visuels/preload_world.gif"/><br><span style="color:#F00;">Veuillez patienter pendant la recherche de taxis disponibles</span><br>Merci de votre confiance !</center></span>';
+			$.mobile.loader.prototype.options.html = '<span class="ui-bar ui-overlay-a ui-corner-all"><center><img src="visuels/preload_world.gif"/><br><span style="color:#F00;">Veuillez patienter pendant la recherche de taxis disponibles</span><br>Merci de votre confiance !</center></span>';
         });
     </script>    
     <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
@@ -97,6 +99,7 @@
 			document.addEventListener("resume", onResume, false);
 			//document.addEventListener("menubutton", onMenuKeyDown, false);
 			StatusBar.overlaysWebView(false);
+			StatusBar.backgroundColorByHexString("#E7B242");
 			if($.localStorage.getItem('registeredUser') != 1)
 			{
 				$.mobile.pageContainer.pagecontainer("change", "#connect", { transition: "slide"} );
@@ -124,7 +127,7 @@
 		function onBackKeyDown() {
 			//history.back();
 			//changePage('#infos');
-			navigator.notification.alert('Veuillez ne pas quitter monTaxi pendant la recheche de taxi disponibles');
+			navigator.notification.alert("Veuillez ne pas quitter monTaxi pendant la recheche de taxi disponibles", alertDismissed, 'MonTaxi', 'OK');
 		}
 		function onResume() {
 			if((navigator.network.connection.type == Connection.NONE) || !window.jQuery){
@@ -198,17 +201,17 @@
 				var number = result.phoneNumber;
 				var message = "Téléchargez l'app monTaxi 34 en suivant ce lien : http://www.taximedia.fr/stores.php?app=mytaxi&dep=34";
 				var intent = ""; //leave empty for sending sms using default intent
-				var success = function () {
+				var smsSuccess = function () {
 					//navigator.notification.alert('Message sent successfully');
 					$('#smsReturn').empty().append('Message envoy&eacute; avec succ&egrave;s, Merci');
 					$( "#popSms" ).popup( "open", { positionTo: "window" } );
 				};
-				var error = function (e) {
+				var smsError = function (e) {
 					//navigator.notification.alert('Message Failed:' + e); 
 					$('#smsReturn').empty().append('Probl&egrave;me lors de l&rsquo;envoi du message: ' + e);
 					$( "#popSms" ).popup( "open", { positionTo: "window" } );
 				};
-				sms.send(number, message, intent, success, error);
+				sms.send(number, message, intent, smsSuccess, smsError);
 			},500);
 		};
 		var failedCallbackPick = function(result){
@@ -388,6 +391,10 @@
 			$("#fogotReturns").empty().append(display);
 		}, "json");
 	}
+	function alertDismissed()
+	{
+		// Do Nothing...
+	}
 	$(document).on( 'pagecreate', function() {
 		$( "body>[data-role='panel']" ).panel().enhanceWithin();
 	});
@@ -405,27 +412,49 @@
 		$('#accTel').val(tel);
 	});
 	function more(n) {
-		$('#histBlock'+n).slideToggle('slow');
+		$('#histBlock'+n).slideToggle('slow', function() {
+			// Animation complete.
+			if($('#histBlock'+n).css("display")=='none') {
+				$('#hbtn'+n).removeClass('ui-icon-minus').addClass('ui-icon-plus');
+			}
+			else {
+				$('#hbtn'+n).removeClass('ui-icon-plus').addClass('ui-icon-minus');
+			}
+		});
 	}
 	function moreb(n) {
-		$('#bookBlock'+n).slideToggle('slow');
+		$('#bookBlock'+n).slideToggle('slow', function() {
+			if($('#bookBlock'+n).css("display")=='none') {
+				$('#bbtn'+n).removeClass('ui-icon-minus').addClass('ui-icon-plus');
+			}
+			else {
+				$('#bbtn'+n).removeClass('ui-icon-plus').addClass('ui-icon-minus');
+			}
+		});
 	}
 	function refreshHist() {
 		$.mobile.loading( "show" );
-		$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
+		$.post("https://www.mytaxiserver.com/mytaxisrv/history_v2.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
 			$("#hist_cont").empty().append(data);
 		}).done(function() { 
-			$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
+			$.post("https://www.mytaxiserver.com/mytaxisrv/history_v2.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
 				$("#book_cont").empty().append(data);
 			}).done(function() { $.mobile.loading( "hide" ); });
 		});
 	}
+	function showCont(cont2show, cont2hide) {
+		if($(window).width()<=1006) {
+			// Only hides cont if conts are not both displayed, see css breakpoint
+			$(cont2hide).hide();
+			$(cont2show).show();
+		}
+	}
 	$( '#history' ).live( 'pagecreate',function(event){
 		$.mobile.loading( "show" );
-		$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
+		$.post("https://www.mytaxiserver.com/mytaxisrv/history_v2.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
 			$("#hist_cont").empty().append(data);
 		}).done(function() { 
-			$.post("https://www.mytaxiserver.com/mytaxisrv/history.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
+			$.post("https://www.mytaxiserver.com/mytaxisrv/history_v2.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
 				$("#book_cont").empty().append(data);
 			}).done(function() { $.mobile.loading( "hide" ); });
 		});
@@ -699,13 +728,17 @@
 			$('.noAppHide').each(function () {
 				$(this).hide();
 			})
+			$('#date').prop('type', 'text');
+			$('#when').prop('type', 'text');
 			$('#date').datebox({
 				mode: "calbox",
-				afterToday: true
+				afterToday: true,
+				useFocus: true
 			});
 			$('#when').datebox({
 				mode: "timebox",
-				overrideTimeOutput: "%k:%M"
+				overrideTimeOutput: "%k:%M",
+				useFocus: true
 			});
 		}
 		once = true;
@@ -782,7 +815,8 @@
 			if (status == google.maps.GeocoderStatus.OK)
 			{
 				if (results[0]) {
-						$('#addressInput').val(results[0].formatted_address);
+					$('#addressInput').val(results[0].formatted_address);
+					$('#addressInput2').val(results[0].formatted_address);
 					for(var i=0; i < results[0].address_components.length; i++)
 					{
 						var component = results[0].address_components[i];
@@ -839,6 +873,7 @@
 		$('#search').prop('disabled', true).addClass('ui-disabled'); // Prevents from multitap
 		if (isPlaceChanged || (zip != '')) {
 			$.mobile.pageContainer.pagecontainer("change", pageToGo, { transition: "slide", reverse: true} );
+			$('#search').prop('disabled', false).removeClass('ui-disabled'); // Button is back
 		}
 		else {
 			$( "#setZip" ).popup( "open", { positionTo: "window" } );
@@ -856,7 +891,6 @@
 		//$('#dblinks').empty();	 
 	});
 	$('#map_page').live('pagecreate', function() {
-		$('#search').prop('disabled', false).removeClass('ui-disabled');
         endcourse = setTimeout( function () {
             $("#cancel").trigger('click');
         }, 180000);
@@ -1275,27 +1309,39 @@
     </script>
     </head>
     <body style="margin:0px; padding:0px;">
-    <div data-role="panel" id="homepanel" data-position="left" data-display="reveal">
+    <div data-role="panel" id="homepanel" data-position="right" data-display="reveal">
         <!-- panel content goes here -->
-        <ul data-role="listview" data-inset="true" data-theme="b">
+        <ul data-role="listview" data-inset="true" data-theme="c">
           <li><a href="#infos" class="ui-btn ui-btn-icon-left ui-icon-home"><b>Accueil</b></a></li>
           <li><a href="#history" class="ui-btn ui-btn-icon-left ui-icon-bars">Historique</a></li>
           <li><a href="#account" class="ui-btn ui-btn-icon-left ui-icon-user">Mon compte</a></li>
           <li><a href="#fleet_page" class="ui-btn ui-btn-icon-left ui-icon-eye">Taxis disponibles</a></li>
-          <li><a href="#" onClick="Share()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-mail noAppHide"><b>Partager l&rsquo;app</b></a></li>
-          <li><a href="#" onClick="goScan()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-camera noAppHide"><b>Scanner un code</b></a></li>
+          <li><a href="#" onClick="Share()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-mail noAppHide">Partager l&rsquo;app</a></li>
+          <li><a href="#" onClick="goScan()" data-transition="slide" class="ui-btn ui-btn-icon-left ui-icon-camera noAppHide">Scanner un code</a></li>
         </ul>
         <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-power" onClick="dc()">D&eacute;connexion</button>
     </div><!-- /panel -->
-    <div data-role="page" data-theme="b" style="background: #000 url(visuels/bg.png) top left repeat-x;" id="infos">
-        <div data-role="header">
-            <a href="#homepanel" id="panel_poper" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-arrow-l"><p style="font-size:16px"><b>Menu</b></p></a>
-        </div>
+    <div data-role="page" data-theme="c"  id="infos">
+        <div data-role="header" data-position="fixed" class="header">
+			<table width="100%" border="0">
+				<thead><tr><th width="50%"></th><th width="34%"></th><th width="16%"></th></tr></thead>
+				<tbody>
+				<tr><td>
+					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+				</td><td>
+					<p>&nbsp;</p>
+				</td><td align="center">
+					<a href="#homepanel" id="panel_poper" data-role="none" style="width:90%;">
+						<img src="visuels/ico_menu.png" width="100%" style="max-width:175px;"/>
+					</a>
+				</td></tr>
+				</tbody>
+			</table>
+		</div>
         <div class="ui-content" role="main">
             <center>
-            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; margin-top:1em; display:block;">
-                <!-- <h1 class="hostname">Commander un taxi</h1> -->
-                <img src="visuels/logo.png" width="60%" style="margin-bottom:-0.6em; max-width:252px"/>
+            <div style="padding:1em; margin-top:1em; display:block;">
+                <!-- <img src="visuels/logo.png" width="60%" style="margin-bottom:-0.6em; max-width:252px"/> -->
                 <input type="hidden" id="operator" size="40" value="0"/>
                 <input type="hidden" id="hostname" size="40" value=""/>
                 <input type="hidden" id="group" size="16" value="1"/>
@@ -1305,28 +1351,32 @@
                 	<thead><tr><th width="90%"></th><th width="10%"></th></tr></thead>
                     <tbody>
                 	<tr><td>
-                        <input type="text" id="addressInput" data-clear-btn="true" size="40" placeholder="Adresse RDV" width="90%"/>
-                    </td><td>
-                        <button onClick="locateMe()" class="ui-btn ui-btn-b ui-icon-location ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button>
+                        <input type="text" id="addressInput" data-clear-btn="true" size="40" placeholder="Adresse RDV" width="90%" style="min-height:3em;"/>
+                    </td><td align="center">
+						<img src="visuels/ico_geolocalisation.png" width="100%" class="cursor" onClick="locateMe()" style="max-width:40px;"/>
+                        <!-- <button onClick="locateMe()" class="ui-btn ui-btn-c ui-icon-location ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button> -->
                     </td></tr>
-                    <input type="hidden" id="DestAddress" size="10" value="DESTINATION"/>
+                <input type="hidden" id="DestAddress" size="10" value="DESTINATION"/>
                 	<tr><td>
-                        <input type="text" id="Accurate" data-clear-btn="true" class="mustHave" size="32" placeholder="Nom *"/>
-                    </td><td>
-                        <button onClick="getContact()" class="ui-btn ui-btn-b ui-icon-edit ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button>
+                        <input type="text" id="Accurate" data-clear-btn="true" class="mustHave" size="32" placeholder="Nom *" style="min-height:3em;"/>
+                    </td><td align="center">
+						<img src="visuels/ico_modif.png" width="100%" class="cursor" onClick="getContact()" style="max-width:45px;"/>
+                        <!-- <button onClick="getContact()" class="ui-btn ui-btn-c ui-icon-edit ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button> -->
                     </td></tr>
                 	<tr><td>
-                        <input type="tel" id="cellular" data-clear-btn="true" class="mustHave" size="20" placeholder="Tel *"/>
-                    </td><td>
-                        <a href="#rememberMe" data-rel="popup" data-position-to="window" class="ui-btn ui-btn-b ui-icon-heart ui-shadow-icon ui-btn-icon-notext ui-corner-all"></a>
+                        <input type="tel" id="cellular" data-clear-btn="true" class="mustHave" size="20" placeholder="Tel *" style="min-height:3em;"/>
+                    </td><td align="center">
+                        <a href="#rememberMe" data-rel="popup" data-position-to="window">
+							<img src="visuels/ico_favori.png" width="100%" class="cursor" onClick="locateMe()" style="max-width:50px;"/>
+						</a>
                     </td></tr>
                     </tbody>
                 </table>
                 <!-- <p style="font-size:small;"><em>*</em> Ces informations sont obligatoires</p> -->
-                <p class="expends">D&eacute;tails<img src="visuels/lineDown.png" width="100%"/></p>
+                <p class="expends"><b>D&eacute;tails</b><br><img src="visuels/dots.png" width="100%" style="max-width:1200px;"/></p>
                 <div id="details">
                     <label for="howMany">Nombre de passagers :</label>
-                    <input name="howMany" id="howMany" min="1" max="20" value="1" data-theme="a" data-show-value="true" data-popup-enabled="true" type="range">
+                    <input name="howMany" id="howMany" min="1" max="20" value="1" data-theme="c" data-show-value="true" data-popup-enabled="true" type="range">
                     <select id="CarType"> 
                         <option value="Berline" selected>Vehicule</option>
                         <option value="Berline">Berline</option>
@@ -1348,7 +1398,7 @@
                     </select>
                     <textarea id="coms" placeholder="Commentaires"></textarea>
                 </div>
-                <p class="expends">Infos Resa<img src="visuels/lineDown.png" width="100%"/></p>
+                <p class="expends"><b>Infos Resa</b><br><img src="visuels/dots.png" width="100%" style="max-width:1200px;"/></p>
                 <div id="book">
                     <p id="datelabel"><b>Date et heure du RDV si r&eacute;servation :</b></p>
                     <span style="display:inline-block;width: 48%;">
@@ -1360,9 +1410,9 @@
                 </div>
                 <input type="hidden" id="radiusSelect" value="100" />
                 <p>&nbsp;</p>
-                <div id="next-box"><button id="next" class="ui-btn ui-btn-a ui-shadow ui-corner-all ui-btn-icon-left ui-icon-next">* Champs obligatoires</button></div>
-                <div id="search-box"><button onClick="checkZip('#map_page')" class="ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-search" id="search">Commander un taxi</button></div>
-                <div id="book-box"><button onClick="booking()" class="ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-clock" id="booking">R&eacute;server un taxi</button></div>
+                <div id="next-box"><button id="next" class="ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-next">* Champs obligatoires</button></div>
+                <div id="search-box"><button onClick="checkZip('#map_page')" class="ui-btn ui-btn-c ui-shadow ui-corner-all ui-btn-icon-left ui-icon-search" id="search">Commander un taxi</button></div>
+                <div id="book-box"><button onClick="booking()" class="ui-btn ui-btn-c ui-shadow ui-corner-all ui-btn-icon-left ui-icon-clock" id="booking">R&eacute;server un taxi</button></div>
                 <div data-role="popup" data-theme="a" id="errorPop" data-dismissible="true">
 					<a href="#infos" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-icon-delete ui-btn-icon-notext ui-btn-right">Fermer</a>
                     <div data-theme="a" data-role="header">
@@ -1397,17 +1447,17 @@
                             Veuillez saisir le code postal de la commune o&ugrave; vous vous trouvez :
                             <input type="tel" id="zipDep" data-clear-btn="true" size="5"/>
                         </p>
-                        <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check" onClick="setZip()">Envoyer</button>
+                        <button class="ui-btn ui-corner-all ui-shadow ui-btn-c ui-btn-icon-left ui-icon-check" onClick="setZip()">Envoyer</button>
                     </div>
                 </div>
             </div>
             </center>
         </div>
     </div>
-    <div data-role="page" data-theme="b" id="map_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+    <div data-role="page" data-theme="c" id="map_page" >
         <div class="ui-content" role="main" id="map">
-			<div data-role="popup" data-theme="b" id="answerBox" data-dismissible="false" data-position-to="window">
-				<div data-theme="b" data-role="header">
+			<div data-role="popup" data-theme="c" id="answerBox" data-dismissible="false" data-position-to="window">
+				<div data-theme="c" data-role="header">
 					<h1>
 						Confirmation
 					</h1>
@@ -1417,8 +1467,8 @@
 					<input type="button" value="OK" onClick="goback('index.html')"/>
 				</div>
 			</div>
-			<div data-role="popup" data-theme="b" id="backPop" data-dismissible="false">
-				<div data-theme="b" data-role="header">
+			<div data-role="popup" data-theme="c" id="backPop" data-dismissible="false">
+				<div data-theme="c" data-role="header">
 					<h1>
 						Annulation
 					</h1>
@@ -1443,15 +1493,15 @@
 			<button type="button" class="cancel ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-delete" id="cancel" onClick="stopCall()" value=""> Retour / Annulation </button></strong></p>
         </div>
     </div>
-    <div data-role="page" data-theme="b" style="background: #000 url(visuels/bg.png) top left repeat-x;" id="connect">
+    <div data-role="page" data-theme="c" id="connect">
         <div class="ui-content" role="main">
             <center>
-            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; margin-top:1em; display:block;">
-                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
+            <div style="padding:1em; margin-top:1em; display:block;">
+				<img src="visuels/logo_montaxi.png" width="60%" style="max-width:512px;"/>
                 <input type="tel" id="login" data-clear-btn="true" size="40" placeholder="Identifiant"/>
                 <input type="password" id="pwd" data-clear-btn="true" size="40" placeholder="Mot de passe"/>
                 <div id="loginReturns"></div>
-                <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check" onClick="login()">Connexion</button>
+                <button class="ui-btn ui-corner-all ui-shadow ui-btn-c ui-btn-icon-left ui-icon-check" onClick="login()">Connexion</button>
                 <a href="#subscription" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-user">Nouvelle Inscription</a>
                 <p style="font-size:small;"><a href="#" id="displayForgot">Mot de passe oubli&eacute;</a></p>
                 <div id="forgotForm" style="display:none;">
@@ -1460,73 +1510,122 @@
                     <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-mail" onClick="forgottenPwd()">Envoyer</button>
                 </div>
                 <div id="fogotReturns"></div>
-            </div>
+           </div>
             </center>
         </div>
     </div>
-    <div data-role="page" data-theme="b" id="subscription" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+    <div data-role="page" data-theme="c" id="subscription">
+        <div data-role="header" data-position="fixed" class="header">
+			<a href="#connect" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-back"><p style="font-size:16px"><b>Retour</b></p></a>
+		</div>
         <div class="ui-content" role="main">
-            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+			<div class="cleaner"></div>
+            <div style="padding:1em; display:block;">
             	<center>
-                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
+				<img src="visuels/logo_montaxi.png" width="60%" style="max-width:512px;"/>
                 <input type="text" id="subName" data-clear-btn="true" size="40" placeholder="Nom"/>
                 <input type="email" id="subMail" data-clear-btn="true" size="40" placeholder="Email"/>
                 <input type="tel" id="subTel" data-clear-btn="true" size="40" placeholder="Tel (Sans espace SVP)"/>
-                <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check" onClick="subscribe()">Inscription</button>
+                <button class="ui-btn ui-corner-all ui-shadow ui-btn-c ui-btn-icon-left ui-icon-check" onClick="subscribe()">Inscription</button>
                 </center>
                 <div id="data"></div>
                 <div id="subReturns"></div>
             </div>
         </div>
     </div>
-    <div data-role="page" data-theme="b" id="account" style="background: #000 url(visuels/bg.png) top left repeat-x;">
-        <div data-role="header">
-            <a href="#homepanel" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-arrow-l"><p style="font-size:16px"><b>Menu</b></p></a>
-        </div>
+    <div data-role="page" data-theme="c" id="account">
+        <div data-role="header" data-position="fixed" class="header">
+			<table width="100%" border="0">
+				<thead><tr><th width="50%"></th><th width="34%"></th><th width="16%"></th></tr></thead>
+				<tbody>
+				<tr><td>
+					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+				</td><td>
+					<p>&nbsp;</p>
+				</td><td align="center">
+					<a href="#homepanel" id="panel_poper" data-role="none" style="width:90%;">
+						<img src="visuels/ico_menu.png" width="100%" style="max-width:175px;"/>
+					</a>
+				</td></tr>
+				</tbody>
+			</table>
+		</div>
         <div class="ui-content" role="main">
-            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+            <div style="padding:1em; display:block;">
             	<center>
-                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
                 <input type="tel" id="accTel" data-clear-btn="true" size="40" placeholder="Tel (Sans espace SVP)"/>
                 <input type="text" id="accName" data-clear-btn="true" size="40" placeholder="Nom"/>
                 <input type="email" id="accMail" data-clear-btn="true" size="40" placeholder="Email"/>
                 <input type="password" id="accPwd" data-clear-btn="true" size="40" placeholder="Mot de passe"/>
-                <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-edit" onClick="accountMod()">Modifier</button>
+                <button class="ui-btn ui-corner-all ui-shadow ui-btn-c ui-btn-icon-left ui-icon-edit" onClick="accountMod()">Modifier</button>
                 </center>
                 <div id="accReturns"></div>
             </div>
         </div>
     </div>
-    <div data-role="page" data-theme="b" id="history" style="background: #000 url(visuels/bg.png) top left repeat-x;">
-        <div data-role="header">
-            <a href="#homepanel" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-arrow-l"><p style="font-size:16px"><b>Menu</b></p></a>
-            <button onClick="refreshHist()" class="ui-btn ui-btn-b ui-icon-refresh ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button>
-        </div>
+    <div data-role="page" data-theme="c" id="history">
+        <div data-role="header" data-position="fixed" class="header">
+			<table width="100%" border="0">
+				<thead><tr><th width="50%"></th><th width="34%"></th><th width="16%"></th></tr></thead>
+				<tbody>
+				<tr><td>
+					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+				</td><td>
+					<p>&nbsp;</p>
+				</td><td align="center">
+					<a href="#homepanel" id="panel_poper" data-role="none" style="width:90%;">
+						<img src="visuels/ico_menu.png" width="100%" style="max-width:175px;"/>
+					</a>
+				</td></tr>
+				</tbody>
+			</table>
+		</div>
         <div class="ui-content" role="main">
-            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+            <div style="display:block;">
+				<button onClick="refreshHist()" class="ui-btn ui-btn-b ui-btn-right ui-icon-refresh ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button>
             	<center>
-                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
-                <p style="font-size:16px"><b>Historique des courses</b></p>
+                <p style="font-size:16px;color:#FC0;"><b>Historique des courses</b><br><img src="visuels/dots.png" width="100%" style="max-width:1200px;"/></p>
                 </center>
-                <div class="responsive">
-                    <div class="ui-block-a"><div class="ui-body ui-body-a"><p>Courses directes</p><div id="hist_cont"></div></div></div>
-                    <div class="ui-block-b"><div class="ui-body ui-body-b"><p>R&eacute;servations</p><div id="book_cont"></div></div></div>
+				<button class="ui-btn ui-corner-all ui-shadow ui-btn-c ui-btn-icon-left ui-icon-clock ui-btn-inline" onClick="showCont('.ui-block-a','.ui-block-b')">Commandes</button>
+				<button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-calendar ui-btn-inline" onClick="showCont('.ui-block-b','.ui-block-a')">R&eacute;servations</button>
+                <div class="responsive transpcont rounded shadow">
+                    <div class="ui-block-a"><div class="ui-body">
+						<div id="hist_cont"></div>
+					</div></div>
+                    <div class="ui-block-b"><div class="ui-body">
+						<div id="book_cont"></div>
+					</div></div>
                 </div>
             </div>
         </div>
     </div>
-    <div data-role="page" data-theme="b" id="book_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+    <div data-role="page" data-theme="c" id="book_page">
+        <div data-role="header" data-position="fixed" class="header">
+			<table width="100%" border="0">
+				<thead><tr><th width="50%"></th><th width="34%"></th><th width="16%"></th></tr></thead>
+				<tbody>
+				<tr><td>
+					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+				</td><td>
+					<p>&nbsp;</p>
+				</td><td align="center">
+					<a href="#homepanel" id="panel_poper" data-role="none" style="width:90%;">
+						<img src="visuels/ico_menu.png" width="100%" style="max-width:175px;"/>
+					</a>
+				</td></tr>
+				</tbody>
+			</table>
+		</div>
         <div class="ui-content" role="main">
             <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
             	<center>
-                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
                 <p><b><br><br>Votre demande a &eacute;t&eacute; prise en compte, votre taxi prendra contact avec vous par t&eacute;l&eacute;phone ou sms.<br><br>Toute l&rsquo;&eacute;quipe monTaxi 34 vous remercie.</b></p>
-                <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-edit" onClick="goback('index.html')">Retour</button>
+                <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-back" onClick="goback('index.html')">Retour</button>
                 </center>
             </div>
         </div>
     </div>
-    <div data-role="page" data-theme="b" id="fleet_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
+    <div data-role="page" data-theme="c" id="fleet_page" >
         <div data-role="header" data-position="fixed" data-fullscreen="true">
             <button onClick="goback('index.html')" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-power"><p style="font-size:16px"><b>Retour</b></p></button>
         </div>
@@ -1538,8 +1637,8 @@
             </center>
         </div>
     </div>
-    <div data-role="page" data-theme="b" id="follow" style="background: #000 url(visuels/bg.png) top left repeat-x;">
-        <div data-role="header" data-position="fixed" data-fullscreen="true">
+    <div data-role="page" data-theme="c" id="follow">
+        <div data-role="header" data-fullscreen="true">
             <button onClick="goback('index.html')" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-power"><p style="font-size:16px"><b>Arr&ecirc;ter</b></p></button>
         </div>
         <div class="ui-content" id="follow_map" role="main">
@@ -1551,15 +1650,25 @@
             </strong></p></center>
         </div>
     </div>
-    <div data-role="page" data-theme="b" id="rate_page" style="background: #000 url(visuels/bg.png) top left repeat-x;">
-        <div data-role="header">
-            <a href="#homepanel" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-arrow-l"><p style="font-size:16px"><b>Menu</b></p></a>
-        </div>
+    <div data-role="page" data-theme="c" id="rate_page">
+        <div data-role="header" data-position="fixed" class="header">
+			<table width="100%" border="0">
+				<thead><tr><th width="50%"></th><th width="14%"></th><th width="36%"></th></tr></thead>
+				<tbody>
+				<tr><td>
+					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+				</td><td>
+					<p>&nbsp;</p>
+				</td><td align="center">
+					<a href="#history" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-back"><p style="font-size:16px"><b>Retour</b></p></a>
+				</td></tr>
+				</tbody>
+			</table>
+		</div>
         <div class="ui-content" role="main">
-            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; display:block;">
+            <div style="display:block;">
             	<center>
-                <img src="visuels/logo.png" width="60%" style="max-width:252px"/>
-                <div id="urate"></div>
+                <div id="urate" style="font-weight:bold;color: #FC0;"></div>
                 </center>
                 <div class="ui-bar-a ui-corner-all ui-shadow" style="padding:1em; display:block;">
                     Accueil :
@@ -1572,41 +1681,51 @@
                     <div class="rating4" data-rating-max="5"></div><div class="spacer"></div>
                 </div>
                 <center><div id="rateBack"></div></center>
-                <button class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check" onClick="rating()">Envoyer</button>
+                <button class="ui-btn ui-corner-all ui-shadow ui-btn-c ui-btn-icon-left ui-icon-check" onClick="rating()">Envoyer</button>
             </div>
         </div>
     </div>
-    <div data-role="page" data-theme="b" style="background: #000 url(visuels/bg.png) top left repeat-x;" id="modbook">
-        <div data-role="header">
-            <a href="#homepanel" id="panel_poper" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-arrow-l"><p style="font-size:16px"><b>Menu</b></p></a>
-        </div>
+	<div data-role="page" data-theme="c" id="modbook">
+        <div data-role="header" data-position="fixed" class="header">
+			<table width="100%" border="0">
+				<thead><tr><th width="50%"></th><th width="14%"></th><th width="36%"></th></tr></thead>
+				<tbody>
+				<tr><td>
+					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+				</td><td>
+					<p>&nbsp;</p>
+				</td><td align="center">
+					<a href="#history" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-back"><p style="font-size:16px"><b>Retour</b></p></a>
+				</td></tr>
+				</tbody>
+			</table>
+		</div>
         <div class="ui-content" role="main">
             <center>
-            <div class="ui-bar-b ui-corner-all ui-shadow" style="padding:1em; margin-top:1em; display:block;">
+            <div style="padding:1em; margin-top:1em; display:block;">
                 <!-- <h1 class="hostname">Commander un taxi</h1> -->
-                <img src="visuels/logo.png" width="60%" style="margin-bottom:-0.6em; max-width:252px"/>
                 <table width="100%" border="0">
                 	<thead><tr><th width="90%"></th><th width="10%"></th></tr></thead>
                     <tbody>
                 	<tr><td>
                         <input type="text" id="addressInput2" data-clear-btn="true" size="40" placeholder="Adresse RDV" width="90%"/>
-                    </td><td>
-                        <button onClick="locateMe()" class="ui-btn ui-btn-b ui-icon-location ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button>
+                    </td><td align="center">
+						<img src="visuels/ico_geolocalisation.png" width="100%" class="cursor" onClick="locateMe()" style="max-width:40px;"/>
                     </td></tr>
                 	<tr><td>
                         <input type="text" id="Accurate2" data-clear-btn="true" class="mustHave" size="32" placeholder="Nom *"/>
-                    </td><td>
-                        <button onClick="getContact()" class="ui-btn ui-btn-b ui-icon-edit ui-shadow-icon ui-btn-icon-notext ui-corner-all"></button>
+                    </td><td align="center">
+						<img src="visuels/ico_modif.png" width="100%" class="cursor" onClick="getContact()" style="max-width:45px;"/>
                     </td></tr>
                 	<tr><td>
                         <input type="tel" id="cellular2" data-clear-btn="true" class="mustHave" size="20" placeholder="Tel *"/>
                     </tbody>
                 </table>
                 <!-- <p style="font-size:small;"><em>*</em> Ces informations sont obligatoires</p> -->
-                <p class="expends2">D&eacute;tails<img src="visuels/lineDown.png" width="100%"/></p>
+                <p class="expends"><b>D&eacute;tails</b><br><img src="visuels/dots.png" width="100%" style="max-width:1200px;"/></p>
                 <div id="details">
                     <label for="howMany">Nombre de passagers :</label>
-                    <input name="howMany" id="howMany2" min="1" max="8" value="1" data-theme="a" data-show-value="true" data-popup-enabled="true" type="range">
+                    <input name="howMany" id="howMany2" min="1" max="8" value="1" data-theme="c" data-show-value="true" data-popup-enabled="true" type="range">
                     <select id="CarType2"> 
                         <option value="Berline" selected>Vehicule</option>
                         <option value="Berline">Berline</option>
@@ -1634,7 +1753,7 @@
                 <input type="hidden" id="modId" size="20" value=""/>
                 <input type="hidden" id="modDep" size="2" value=""/>
 				<div id="resmod"></div>
-                <button onClick="bookingMod()" class="ui-btn ui-btn-b ui-shadow ui-corner-all ui-btn-icon-left ui-icon-clock" id="bookingMod">Modifier la r&eacute;servation</button>
+                <button onClick="bookingMod()" class="ui-btn ui-btn-c ui-shadow ui-corner-all ui-btn-icon-left ui-icon-clock" id="bookingMod">Modifier la r&eacute;servation</button>
             </div>
             </center>
         </div>
