@@ -15,6 +15,10 @@ body {
     background: #333;
 	background-color: rgba(60,60,60,0.6);
 }
+.header_cont {
+    background: #181316 ;
+	background-color: rgba(24,19,22,0.6);
+}
 .ui-overlay-c, .ui-page-theme-c, .ui-page-theme-c .ui-panel-wrapper, .header {
 	background: url(../visuels/bg_HD.jpg) no-repeat center fixed;
 	background-size: cover;

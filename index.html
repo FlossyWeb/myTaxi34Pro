@@ -22,7 +22,7 @@
             and (-webkit-device-pixel-ratio: 2)"
             href="visuels/startup_image_i5.png">
     <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile.structure-1.4.5.min.css" />
-	<link rel="stylesheet" href="css/themes/monTaxiPart.min.css" />
+	<link rel="stylesheet" href="css/themes/monTaxiPro.min.css" />
 	<link rel="stylesheet" href="css/themes/jquery.mobile.icons.min.css" />
     <link type="text/css" rel="stylesheet" href="css/dcvpad.css" />
     <link type="text/css" rel="stylesheet" href="css/jqm-datebox-1.4.5.min.css" />
@@ -913,7 +913,7 @@
 						//$.mobile.loading( "hide" );
 					}, 2000);
 					
-					var userIcon = 'visuels/blue_marker.png';
+					var userIcon = 'visuels/business_loc_icon.png';
 					self.get('map').panTo(myPlace);
 					//self.get('map').setZoom(12);
 					//self.get('map').setCenter(myPlace);
@@ -983,7 +983,7 @@
 					i = $(this).attr('count');
 					var latlng = new google.maps.LatLng(lat, lng);			
 					var display_name = 'Taxi ' + name;
-					var cabIcon = 'visuels/cab_marker.png';
+					var cabIcon = 'visuels/taxi_loc_icon.png';
 					self.addMarker({ id: i ,'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
 						infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + name + ' - ' + address+ '</b></p>';
 						self.openInfoWindow({ 'content':  infoCont}, this);
@@ -1021,7 +1021,7 @@
 			navigator.geolocation.getCurrentPosition(function(position, status) {
 				var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude)
 				self.get('map').panTo(latlng);
-				var userIcon = 'visuels/blue_marker.png';
+				var userIcon = 'visuels/business_loc_icon.png';
 				self.addMarker({ id: 'you', 'position': latlng, 'bounds': true, 'icon': userIcon }).click(function() {
 					self.openInfoWindow({ 'content':  '<p style="color:#09F;"><b>Vous &Ecirc;tes ici</b></p>' }, this);
 				});
@@ -1058,7 +1058,7 @@
 				if(data.ok) {
 					var latlng = new google.maps.LatLng(data.lat, data.lng);
 					var display_name = 'Taxi ' + data.name;
-					var cabIcon = 'visuels/cab_marker.png';
+					var cabIcon = 'visuels/taxi_loc_icon.png';
 					self.addMarker({ id: 'cab', 'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
 						infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + data.name + ' - ' + data.address+ ' &agrave; ' + data.timestamp+ '</b></p>';
 						self.openInfoWindow({ 'content':  infoCont}, this);
@@ -1077,7 +1077,7 @@
 					markerCab.setVisible(false);
 					var latlng = new google.maps.LatLng(data.lat, data.lng);
 					var display_name = 'Taxi ' + data.name;
-					var cabIcon = 'visuels/cab_marker.png';
+					var cabIcon = 'visuels/taxi_loc_icon.png';
 					self.addMarker({ id: 'cab', 'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
 						infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + data.name + ' - ' + data.address+ ' &agrave; ' + data.timestamp+ '</b></p>';
 						self.openInfoWindow({ 'content':  infoCont}, this);
@@ -1087,7 +1087,7 @@
 					navigator.geolocation.getCurrentPosition(function(position, status) {
 						var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude)
 						self.get('map').panTo(latlng);
-						var userIcon = 'visuels/blue_marker.png';
+						var userIcon = 'visuels/business_loc_icon.png';
 						self.addMarker({ id: 'you', 'position': latlng, 'bounds': true, 'icon': userIcon }).click(function() {
 							self.openInfoWindow({ 'content':  '<p style="color:#09F;"><b>Vous &Ecirc;tes ici</b></p>' }, this);
 						});
@@ -1197,7 +1197,7 @@
 				num_req = num_req+1;
 				var latlng = new google.maps.LatLng(lat2, lng2);			
 				var display_name = 'Taxi ' + name;
-				var cabIcon = 'visuels/cab_marker.png';
+				var cabIcon = 'visuels/taxi_loc_icon.png';
 				mapEvent.addMarker({ id: i ,'position': latlng, 'bounds': true, 'title': display_name, 'icon': cabIcon }).click(function() {
 					infoCont = '<p style="color:#333;"><b>taxi n&deg; ' + name + ' est &agrave; ' + parseFloat(distance).toFixed(1) + ' Km de vous tel: ' + address+ '</b></p>';
 					mapEvent.openInfoWindow({ 'content':  infoCont}, this);
@@ -1279,6 +1279,7 @@
 		clearInterval(time);
 		clearTimeout(endcourse);
 		cancel(idcourse);
+		idcourse=''; // reset idcourse
 		$('#map').gmap('destroy');
 		$( "#backPop" ).popup( "open", { positionTo: "window" } );
 		var wait2getBack = setTimeout( function () {
@@ -1323,11 +1324,11 @@
     </div><!-- /panel -->
     <div data-role="page" data-theme="c"  id="infos">
         <div data-role="header" data-position="fixed" class="header">
-			<table width="100%" border="0">
+			<table width="100%" border="0" class="header_cont">
 				<thead><tr><th width="50%"></th><th width="34%"></th><th width="16%"></th></tr></thead>
 				<tbody>
 				<tr><td>
-					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+					<img src="visuels/header.png" width="100%" style="max-width:512px;"/>
 				</td><td>
 					<p>&nbsp;</p>
 				</td><td align="center">
@@ -1535,11 +1536,11 @@
     </div>
     <div data-role="page" data-theme="c" id="account">
         <div data-role="header" data-position="fixed" class="header">
-			<table width="100%" border="0">
+			<table width="100%" border="0" class="header_cont">
 				<thead><tr><th width="50%"></th><th width="34%"></th><th width="16%"></th></tr></thead>
 				<tbody>
 				<tr><td>
-					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+					<img src="visuels/header.png" width="100%" style="max-width:512px;"/>
 				</td><td>
 					<p>&nbsp;</p>
 				</td><td align="center">
@@ -1565,11 +1566,11 @@
     </div>
     <div data-role="page" data-theme="c" id="history">
         <div data-role="header" data-position="fixed" class="header">
-			<table width="100%" border="0">
+			<table width="100%" border="0" class="header_cont">
 				<thead><tr><th width="50%"></th><th width="34%"></th><th width="16%"></th></tr></thead>
 				<tbody>
 				<tr><td>
-					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+					<img src="visuels/header.png" width="100%" style="max-width:512px;"/>
 				</td><td>
 					<p>&nbsp;</p>
 				</td><td align="center">
@@ -1601,11 +1602,11 @@
     </div>
     <div data-role="page" data-theme="c" id="book_page">
         <div data-role="header" data-position="fixed" class="header">
-			<table width="100%" border="0">
+			<table width="100%" border="0" class="header_cont">
 				<thead><tr><th width="50%"></th><th width="34%"></th><th width="16%"></th></tr></thead>
 				<tbody>
 				<tr><td>
-					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+					<img src="visuels/header.png" width="100%" style="max-width:512px;"/>
 				</td><td>
 					<p>&nbsp;</p>
 				</td><td align="center">
@@ -1652,11 +1653,11 @@
     </div>
     <div data-role="page" data-theme="c" id="rate_page">
         <div data-role="header" data-position="fixed" class="header">
-			<table width="100%" border="0">
+			<table width="100%" border="0" class="header_cont">
 				<thead><tr><th width="50%"></th><th width="14%"></th><th width="36%"></th></tr></thead>
 				<tbody>
 				<tr><td>
-					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+					<img src="visuels/header.png" width="100%" style="max-width:512px;"/>
 				</td><td>
 					<p>&nbsp;</p>
 				</td><td align="center">
@@ -1687,11 +1688,11 @@
     </div>
 	<div data-role="page" data-theme="c" id="modbook">
         <div data-role="header" data-position="fixed" class="header">
-			<table width="100%" border="0">
+			<table width="100%" border="0" class="header_cont">
 				<thead><tr><th width="50%"></th><th width="14%"></th><th width="36%"></th></tr></thead>
 				<tbody>
 				<tr><td>
-					<img src="visuels/header.png" width="100%" style="max-width:500px;"/>
+					<img src="visuels/header.png" width="100%" style="max-width:512px;"/>
 				</td><td>
 					<p>&nbsp;</p>
 				</td><td align="center">
