@@ -650,14 +650,33 @@
 		//navigator.notification.alert(url);
 		url = url.replace(/'/g, "&rsquo;");
 		url = url.replace(/(?:\r\n|\r|\n)/g, '<br/>'); // Replaces line breaks by <br/>
-		$.post("https://www.mytaxiserver.com/server/bookings_app_mod.php", url, function(data) {
-			//$('#resmod').append(data.req);
+		if(newWhen!='') {
+			$.post("https://www.mytaxiserver.com/server/bookings_app_mod.php", url, function(data) {
+				//$('#resmod').append(data.req);
+				if(!data.ok) {
+					if(app) navigator.notification.alert('Vous ne pouvez modifier la réservation !!');
+					else alert('Vous ne pouvez modifier la réservation !!');
+				}
+				else {
+					$.mobile.pageContainer.pagecontainer("change", "#book_page", { transition: "slide"} );
+				}
+			}, "json");
+		}
+		else {
+			if(app) navigator.notification.alert('Afin de modifier la réservation, vous devez renseigner une date de RDV !!', alertDismissed, 'MonTaxi', 'OK');
+			else alert('Afin de modifier la réservation, vous devez renseigner une date de RDV !!');
+		}
+	}
+	function delCmd(id)
+	{		
+		$.post("https://www.mytaxiserver.com/appserver/bookings_app_mod.php", {idcourse: id, del: 1, db: 1}, function(data) {
 			if(!data.ok) {
-				if(app) navigator.notification.alert('Vous ne pouvez modifier la reservation !!');
-				else alert('Vous ne pouvez modifier la reservation !!');
+				if(app) navigator.notification.alert('Vous ne pouvez pas annuler cette réservation !!', alertDismissed, 'MonTaxi', 'OK');
+				else alert('Vous ne pouvez modifier la réservation !!');
 			}
 			else {
-				$.mobile.pageContainer.pagecontainer("change", "#book_page", { transition: "slide"} );
+				if(app) navigator.notification.alert('La réservation à bien été annulée !!', alertDismissed, 'MonTaxi', 'OK');
+				else alert('La réservation à bien été annulée !!');
 			}
 		}, "json");
 	}
@@ -771,8 +790,8 @@
             }
 			if(howMany>8) {
 				if(once) {
-					if(app) navigator.notification.alert('Pour plus de huit personnes veuillez passer une reservation SVP');
-					else alert('Pour plus de huit personnes veuillez passer une reservation SVP');
+					if(app) navigator.notification.alert('Pour plus de huit personnes veuillez passer une réservation SVP');
+					else alert('Pour plus de huit personnes veuillez passer une réservation SVP');
 					$('#book').slideToggle('slow');
 					$('#date').focus();
 				}
@@ -1649,7 +1668,7 @@
         </div>
     </div>
     <div data-role="page" data-theme="c" id="follow">
-        <div data-role="header" data-fullscreen="true">
+        <div data-role="header" data-position="fixed" data-fullscreen="true">
             <button onClick="goback('index.html')" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-power"><p style="font-size:16px"><b>Arr&ecirc;ter</b></p></button>
         </div>
         <div class="ui-content" id="follow_map" role="main">
