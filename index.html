@@ -35,10 +35,10 @@
             $.mobile.allowCrossDomainPages = true;
             $.mobile.selectmenu.prototype.options.nativeMenu = false;
 			//$.mobile.ajaxEnabled = false;
-			$.mobile.loader.prototype.options.text = "Veuillez patienter pendant la recherche de taxi disponible. Merci de votre confiance !";
+			$.mobile.loader.prototype.options.text = "Veuillez patienter pendant que nous effectuons votre recherche. Merci de votre confiance !";
 			$.mobile.loader.prototype.options.textVisible = "true";
 			$.mobile.loader.prototype.options.theme = "a";
-			$.mobile.loader.prototype.options.html = '<span class="ui-bar ui-overlay-a ui-corner-all"><center><img src="visuels/preload_world.gif"/><br><span style="color:#F00;">Veuillez patienter pendant la recherche de taxis disponibles</span><br>Merci de votre confiance !</center></span>';
+			$.mobile.loader.prototype.options.html = '<span class="ui-bar ui-overlay-a ui-corner-all"><center><img src="visuels/preload_world.gif"/><br><span style="color:#F00;">Veuillez patienter pendant que nous effectuons votre recherche.</span><br>Merci de votre confiance !</center></span>';
         });
     </script>    
     <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
@@ -436,13 +436,14 @@
 		$.mobile.loading( "show" );
 		$.post("https://www.mytaxiserver.com/mytaxisrv/history_v2.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
 			$("#hist_cont").empty().append(data);
-		}).done(function() { 
+		}).always(function() { 
 			$.post("https://www.mytaxiserver.com/mytaxisrv/history_v2.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
 				$("#book_cont").empty().append(data);
-			}).done(function() { $.mobile.loading( "hide" ); });
+			}).always(function() { $.mobile.loading( "hide" ); });
 		});
 	}
 	function showCont(cont2show, cont2hide) {
+		refreshHist();
 		if($(window).width()<=1006) {
 			// Only hides cont if conts are not both displayed, see css breakpoint
 			$(cont2hide).hide();
@@ -453,10 +454,10 @@
 		$.mobile.loading( "show" );
 		$.post("https://www.mytaxiserver.com/mytaxisrv/history_v2.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 1}, function(data){
 			$("#hist_cont").empty().append(data);
-		}).done(function() { 
+		}).always(function() { 
 			$.post("https://www.mytaxiserver.com/mytaxisrv/history_v2.php", { tel: tel, pass: 1, dep: '34', operator: operator, hist: 0}, function(data){
 				$("#book_cont").empty().append(data);
-			}).done(function() { $.mobile.loading( "hide" ); });
+			}).always(function() { $.mobile.loading( "hide" ); });
 		});
 	});
 	function rateCab(rtaxi, ridcourse, rdep, rtel)
@@ -493,8 +494,9 @@
 		var tarif = $(".rating2").data("val");
 		var vehicule = $(".rating3").data("val");
 		var conduite = $(".rating4").data("val");
+		var comRate = $(".comRate").val();
 		//navigator.notification.alert(rtaxi+' - '+ridcourse+' - '+rdep+' - '+rtel+' - '+accueil+' - '+tarif+' - '+vehicule+' - '+conduite);
-		$.post("https://www.mytaxiserver.com/mytaxisrv/rate.php", { taxi: rtaxi, idcourse: ridcourse, dep: rdep, tel: rtel, accueil: accueil, tarif: tarif, vehicule: vehicule, conduite: conduite, judge: 1}, function(data){ $('#rateBack').empty().append('Vos notes ont &eacute;t&eacute; prise en compte, Merci.');});
+		$.post("https://www.mytaxiserver.com/mytaxisrv/rate.php", { taxi: rtaxi, idcourse: ridcourse, dep: rdep, tel: rtel, accueil: accueil, tarif: tarif, vehicule: vehicule, conduite: conduite, comments: comRate, judge: 1}, function(data){ $('#rateBack').empty().append('Vos notes ont &eacute;t&eacute; prise en compte, Merci.');});
 	}
 	function booking()
 	{
@@ -1655,28 +1657,34 @@
             </div>
         </div>
     </div>
-    <div data-role="page" data-theme="c" id="fleet_page" >
+    <div data-role="page" data-theme="c" id="fleet_page">
+		<!--
         <div data-role="header" data-position="fixed" data-fullscreen="true">
-            <button onClick="goback('index.html')" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-power"><p style="font-size:16px"><b>Retour</b></p></button>
+			<button onClick="goback('index.html')" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-power"><p style="font-size:16px"><b>Retour</b></p></button>
         </div>
+		-->
         <div class="ui-content" id="fleet_map" role="main">
         </div>
         <div data-role="footer" id="footer_map" data-position="fixed" data-fullscreen="true">
             <center>
                 <span class="cabNum" style="font-size:24px; color:#FC0;"></span>
+				<button onClick="goback('index.html')" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-power"><p style="font-size:16px"><b>Retour</b></p></button>
             </center>
         </div>
     </div>
     <div data-role="page" data-theme="c" id="follow">
+		<!--
         <div data-role="header" data-position="fixed" data-fullscreen="true">
             <button onClick="goback('index.html')" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-power"><p style="font-size:16px"><b>Arr&ecirc;ter</b></p></button>
         </div>
+		-->
         <div class="ui-content" id="follow_map" role="main">
         </div>
         <div data-role="footer" id="footer_map" data-position="fixed" data-fullscreen="true">
             <center><p><strong>
             	Vous ne pouvez suivre un taxi que 30 minutes avant le RDV.<br>
                 Les positions sont actualis&eacute;es toutes les 30 secondes.
+				<button onClick="goback('index.html')" class="ui-btn ui-btn-icon-left ui-corner-all ui-shadow ui-icon-power"><p style="font-size:16px"><b>Arr&ecirc;ter</b></p></button>
             </strong></p></center>
         </div>
     </div>
@@ -1710,6 +1718,7 @@
                     Conduite / itin&eacute;raire : 
                     <div class="rating4" data-rating-max="5"></div><div class="spacer"></div>
                 </div>
+				<textarea id="comRate" class="comRate" maxlength="512" placeholder="Commentaires"></textarea>
                 <center><div id="rateBack"></div></center>
                 <button class="ui-btn ui-corner-all ui-shadow ui-btn-c ui-btn-icon-left ui-icon-check" onClick="rating()">Envoyer</button>
             </div>
